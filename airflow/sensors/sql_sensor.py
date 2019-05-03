@@ -55,7 +55,7 @@ class SqlSensor(BaseSensorOperator):
 
         allowed_conn_type = {'google_cloud_platform', 'jdbc', 'mssql',
                              'mysql', 'oracle', 'postgres',
-                             'presto', 'sqlite', 'vertica'}
+                             'presto', 'sqlite', 'vertica', 'exasol'}
         if conn.conn_type not in allowed_conn_type:
             raise AirflowException("The connection type is not supported by SqlSensor. " +
                                    "Supported connection types: {}".format(list(allowed_conn_type)))
