@@ -277,7 +277,7 @@ else:
 def do_setup():
     write_version()
     setup(
-        name='apache-airflow',
+        name='revolut-airflow',
         description='Programmatically author, schedule and monitor data pipelines',
         long_description=long_description,
         long_description_content_type='text/markdown',
