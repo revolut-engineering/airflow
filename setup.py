@@ -233,9 +233,10 @@ vertica = ['vertica-python>=0.5.1']
 webhdfs = ['hdfs[dataframe,avro,kerberos]>=2.0.4']
 winrm = ['pywinrm==0.2.2']
 zendesk = ['zdesk']
+exasol = ['pyexasol>=0.5.5']
 
 all_dbs = postgres + mysql + hive + mssql + hdfs + vertica + cloudant + druid + pinot \
-    + cassandra + mongo
+    + cassandra + mongo + exasol
 
 devel = [
     'beautifulsoup4~=4.7.1',
@@ -389,7 +390,8 @@ def do_setup():
             'statsd': statsd,
             'vertica': vertica,
             'webhdfs': webhdfs,
-            'winrm': winrm
+            'winrm': winrm,
+            'exasol': exasol
         },
         classifiers=[
             'Development Status :: 5 - Production/Stable',
