@@ -283,7 +283,7 @@ class BaseOperator(LoggingMixin):
         queue=configuration.conf.get('celery', 'default_queue'),  # type: str
         pool=Pool.DEFAULT_POOL_NAME,  # type: str
         sla=None,  # type: Optional[timedelta]
-        execution_timeout=None,  # type: Optional[timedelta]
+        execution_timeout=timedelta(hours=23),  # type: Optional[timedelta]
         on_failure_callback=None,  # type: Optional[Callable]
         on_success_callback=None,  # type: Optional[Callable]
         on_retry_callback=None,  # type: Optional[Callable]
