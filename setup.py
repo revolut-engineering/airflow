@@ -256,9 +256,10 @@ virtualenv = ['virtualenv']
 webhdfs = ['hdfs[dataframe,avro,kerberos]>=2.0.4']
 winrm = ['pywinrm==0.2.2']
 zendesk = ['zdesk']
+exasol = ['pyexasol>=0.5.5']
 
 all_dbs = postgres + mysql + hive + mssql + hdfs + vertica + cloudant + druid + pinot \
-    + cassandra + mongo
+    + cassandra + mongo + exasol
 
 devel = [
     'beautifulsoup4~=4.7.1',
@@ -314,7 +315,7 @@ def do_setup():
     """Perform the Airflow package setup."""
     write_version()
     setup(
-        name='apache-airflow',
+        name='revolut-airflow',
         description='Programmatically author, schedule and monitor data pipelines',
         long_description=long_description,
         long_description_content_type='text/markdown',
@@ -433,6 +434,7 @@ def do_setup():
             'virtualenv': virtualenv,
             'webhdfs': webhdfs,
             'winrm': winrm,
+            'exasol': exasol
         },
         classifiers=[
             'Development Status :: 5 - Production/Stable',
