@@ -359,6 +359,30 @@ zendesk = [
     'zdesk',
 ]
 # End dependencies group
+pinot = ['pinotdb==0.1.1']
+postgres = ['psycopg2>=2.7.4,<2.8']
+qds = ['qds-sdk>=1.9.6']
+rabbitmq = ['librabbitmq>=1.6.1']
+redis = ['redis~=3.2']
+s3 = ['boto3>=1.7.0, <1.8.0']
+salesforce = ['simple-salesforce>=0.72']
+samba = ['pysmbclient>=0.1.3']
+segment = ['analytics-python>=1.2.9']
+sendgrid = ['sendgrid>=5.2.0,<6']
+slack = ['slackclient>=1.0.0']
+mongo = ['pymongo>=3.6.0']
+snowflake = ['snowflake-connector-python>=1.5.2',
+             'snowflake-sqlalchemy>=1.1.0']
+ssh = ['paramiko>=2.1.1', 'pysftp>=0.2.9', 'sshtunnel>=0.1.4,<0.2']
+statsd = ['statsd>=3.0.1, <4.0']
+vertica = ['vertica-python>=0.5.1']
+webhdfs = ['hdfs[dataframe,avro,kerberos]>=2.0.4']
+winrm = ['pywinrm==0.2.2']
+zendesk = ['zdesk']
+exasol = ['pyexasol>=0.12']
+
+all_dbs = postgres + mysql + hive + mssql + hdfs + vertica + cloudant + druid + pinot \
+    + cassandra + mongo + exasol
 
 all_dbs = (cassandra + cloudant + druid + hdfs + hive + mongo + mssql + mysql +
            pinot + postgres + presto + vertica)
@@ -430,7 +454,7 @@ def do_setup():
     """Perform the Airflow package setup."""
     write_version()
     setup(
-        name='apache-airflow',
+        name='revolut-airflow',
         description='Programmatically author, schedule and monitor data pipelines',
         long_description=long_description,
         long_description_content_type='text/markdown',
@@ -576,6 +600,7 @@ def do_setup():
             'virtualenv': virtualenv,
             'webhdfs': webhdfs,
             'winrm': winrm,
+            'exasol': exasol
         },
         classifiers=[
             'Development Status :: 5 - Production/Stable',
@@ -592,7 +617,7 @@ def do_setup():
         ],
         author='Apache Software Foundation',
         author_email='dev@airflow.apache.org',
-        url='http://airflow.apache.org/',
+        url='https://github.com/revolut-engineering/airflow/',
         download_url=(
             'https://dist.apache.org/repos/dist/release/airflow/' + version),
         cmdclass={

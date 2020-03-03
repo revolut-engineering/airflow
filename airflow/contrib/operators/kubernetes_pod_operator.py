@@ -16,6 +16,7 @@
 # under the License.
 """Executes task in a Kubernetes POD"""
 import re
+import os
 import warnings
 
 from airflow.exceptions import AirflowException
@@ -159,7 +160,10 @@ class KubernetesPodOperator(BaseOperator):  # pylint: disable=too-many-instance-
         super(KubernetesPodOperator, self).__init__(*args, resources=None, **kwargs)
         self.do_xcom_push = do_xcom_push
         self.image = image
-        self.namespace = namespace
+        if os.getenv("RUNTIME_MODE") == "DEV":
+            self.namespace = "airflow-dev"
+        else:
+            self.namespace = namespace
         self.cmds = cmds or []
         self.arguments = arguments or []
         self.labels = labels or {}
