@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import os
 from airflow.exceptions import AirflowException
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
@@ -207,7 +208,10 @@ class KubernetesPodOperator(BaseOperator):
                  **kwargs):
         super(KubernetesPodOperator, self).__init__(*args, **kwargs)
         self.image = image
-        self.namespace = namespace
+        if os.getenv("RUNTIME_MODE") == "DEV":
+            self.namespace = "airflow-dev"
+        else:
+            self.namespace = namespace
         self.cmds = cmds or []
         self.arguments = arguments or []
         self.labels = labels or {}

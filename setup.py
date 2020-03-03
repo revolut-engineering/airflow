@@ -451,7 +451,7 @@ def do_setup():
         ],
         author='Apache Software Foundation',
         author_email='dev@airflow.apache.org',
-        url='http://airflow.apache.org/',
+        url='https://github.com/revolut-engineering/airflow/',
         download_url=(
             'https://dist.apache.org/repos/dist/release/airflow/' + version),
         cmdclass={
