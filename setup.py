@@ -368,6 +368,7 @@ def do_setup():
             'tzlocal>=1.4,<2.0.0',
             'unicodecsv>=0.14.1',
             'zope.deprecation>=4.0, <5.0',
+            'werkzeug<1.0.0',
         ],
         setup_requires=[
             'docutils>=0.14, <1.0',
@@ -434,10 +435,7 @@ def do_setup():
             'virtualenv': virtualenv,
             'webhdfs': webhdfs,
             'winrm': winrm,
-<<<<<<< HEAD
-=======
             'exasol': exasol
->>>>>>> exasol_hook_sql_sensor
         },
         classifiers=[
             'Development Status :: 5 - Production/Stable',
