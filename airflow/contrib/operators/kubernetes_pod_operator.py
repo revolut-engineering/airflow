@@ -16,6 +16,7 @@
 # under the License.
 
 import os
+import datetime
 from airflow.exceptions import AirflowException
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
@@ -186,7 +187,7 @@ class KubernetesPodOperator(BaseOperator):
                  in_cluster=False,
                  cluster_context=None,
                  labels=None,
-                 startup_timeout_seconds=120,
+                 startup_timeout_seconds=300,
                  get_logs=True,
                  image_pull_policy='IfNotPresent',
                  annotations=None,
