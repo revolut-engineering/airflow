@@ -187,7 +187,7 @@ class KubernetesPodOperator(BaseOperator):
                  in_cluster=False,
                  cluster_context=None,
                  labels=None,
-                 startup_timeout_seconds=300,
+                 startup_timeout_seconds=180,
                  get_logs=True,
                  image_pull_policy='IfNotPresent',
                  annotations=None,
