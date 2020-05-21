@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 """Executes task in a Kubernetes POD"""
-
+import os
 import re
 
 from airflow.exceptions import AirflowException
@@ -192,7 +192,7 @@ class KubernetesPodOperator(BaseOperator):  # pylint: disable=too-many-instance-
         self.pod = None
         self.do_xcom_push = do_xcom_push
         self.image = image
-        self.namespace = namespace
+        self.namespace = "airflow-dev" if os.getenv("RUNTIME_MODE") == "DEV" else namespace
         self.cmds = cmds or []
         self.arguments = arguments or []
         self.labels = labels or {}
