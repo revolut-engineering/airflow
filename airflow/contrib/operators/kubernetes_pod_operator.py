@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 """Executes task in a Kubernetes POD"""
+import os
 import re
 import warnings
 
@@ -159,7 +160,10 @@ class KubernetesPodOperator(BaseOperator):  # pylint: disable=too-many-instance-
         super(KubernetesPodOperator, self).__init__(*args, resources=None, **kwargs)
         self.do_xcom_push = do_xcom_push
         self.image = image
-        self.namespace = namespace
+        if os.getenv("RUNTIME_MODE") == "DEV":
+            self.namespace = "airflow-dev"
+        else:
+            self.namespace = namespace
         self.cmds = cmds or []
         self.arguments = arguments or []
         self.labels = labels or {}
