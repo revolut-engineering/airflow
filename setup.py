@@ -392,10 +392,13 @@ winrm = [
 zendesk = [
     'zdesk',
 ]
+exasol = [
+    'pyexasol>=0.12.0',
+]
 # End dependencies group
 
 all_dbs = (cassandra + cloudant + druid + hdfs + hive + mongo + mssql + mysql +
-           pinot + postgres + presto + vertica)
+           pinot + postgres + presto + vertica + exasol)
 
 ############################################################################################################
 # IMPORTANT NOTE!!!!!!!!!!!!!!!
@@ -602,7 +605,7 @@ def do_setup():
     """Perform the Airflow package setup."""
     write_version()
     setup(
-        name='apache-airflow',
+        name='revolut-airflow',
         description='Programmatically author, schedule and monitor data pipelines',
         long_description=long_description,
         long_description_content_type='text/markdown',
@@ -641,7 +644,7 @@ def do_setup():
         ],
         author='Apache Software Foundation',
         author_email='dev@airflow.apache.org',
-        url='http://airflow.apache.org/',
+        url='https://github.com/revolut-engineering/airflow/',
         download_url=(
             'https://dist.apache.org/repos/dist/release/airflow/' + version),
         cmdclass={
