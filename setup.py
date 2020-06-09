@@ -542,7 +542,8 @@ EXTRAS_REQUIREMENTS = {
     'vertica': vertica,
     'virtualenv': virtualenv,
     'webhdfs': webhdfs,
-    'winrm': winrm
+    'winrm': winrm,
+    'exasol': exasol,
 }
 
 #####################################################################################################
