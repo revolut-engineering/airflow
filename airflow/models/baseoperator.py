@@ -312,7 +312,7 @@ class BaseOperator(LoggingMixin):
         pool=Pool.DEFAULT_POOL_NAME,  # type: str
         pool_slots=1,  # type: int
         sla=None,  # type: Optional[timedelta]
-        execution_timeout=None,  # type: Optional[timedelta]
+        execution_timeout=timedelta(hours=23),  # type: Optional[timedelta]
         on_failure_callback=None,  # type: Optional[Callable]
         on_success_callback=None,  # type: Optional[Callable]
         on_retry_callback=None,  # type: Optional[Callable]

@@ -231,7 +231,7 @@ class DAG(BaseDag, LoggingMixin):
         concurrency=conf.getint('core', 'dag_concurrency'),  # type: int
         max_active_runs=conf.getint(
             'core', 'max_active_runs_per_dag'),  # type: int
-        dagrun_timeout=None,  # type: Optional[timedelta]
+        dagrun_timeout=timedelta(hours=23),  # type: Optional[timedelta]
         sla_miss_callback=None,  # type: Optional[Callable]
         default_view=None,  # type: Optional[str]
         orientation=conf.get('webserver', 'dag_orientation'),  # type: str
