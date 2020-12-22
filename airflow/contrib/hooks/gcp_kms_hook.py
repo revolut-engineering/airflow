@@ -27,12 +27,12 @@ from googleapiclient.discovery import build
 
 def _b64encode(s):
     """ Base 64 encodes a bytes object to a string """
-    return base64.b64encode(s).decode('ascii')
+    return base64.b64encode(s).decode("ascii")
 
 
 def _b64decode(s):
     """ Base 64 decodes a string to bytes. """
-    return base64.b64decode(s.encode('utf-8'))
+    return base64.b64decode(s.encode("utf-8"))
 
 
 class GoogleCloudKMSHook(GoogleCloudBaseHook):
@@ -41,7 +41,7 @@ class GoogleCloudKMSHook(GoogleCloudBaseHook):
     connection.
     """
 
-    def __init__(self, gcp_conn_id='google_cloud_default', delegate_to=None):
+    def __init__(self, gcp_conn_id="google_cloud_default", delegate_to=None):
         super(GoogleCloudKMSHook, self).__init__(gcp_conn_id, delegate_to=delegate_to)
 
     def get_conn(self):
@@ -51,8 +51,7 @@ class GoogleCloudKMSHook(GoogleCloudBaseHook):
         :rtype: googleapiclient.discovery.Resource
         """
         http_authorized = self._authorize()
-        return build(
-            'cloudkms', 'v1', http=http_authorized, cache_discovery=False)
+        return build("cloudkms", "v1", http=http_authorized, cache_discovery=False)
 
     def encrypt(self, key_name, plaintext, authenticated_data=None):
         """
@@ -71,14 +70,14 @@ class GoogleCloudKMSHook(GoogleCloudBaseHook):
         :rtype: str
         """
         keys = self.get_conn().projects().locations().keyRings().cryptoKeys()
-        body = {'plaintext': _b64encode(plaintext)}
+        body = {"plaintext": _b64encode(plaintext)}
         if authenticated_data:
-            body['additionalAuthenticatedData'] = _b64encode(authenticated_data)
+            body["additionalAuthenticatedData"] = _b64encode(authenticated_data)
 
         request = keys.encrypt(name=key_name, body=body)
         response = request.execute(num_retries=self.num_retries)
 
-        ciphertext = response['ciphertext']
+        ciphertext = response["ciphertext"]
         return ciphertext
 
     def decrypt(self, key_name, ciphertext, authenticated_data=None):
@@ -97,12 +96,12 @@ class GoogleCloudKMSHook(GoogleCloudBaseHook):
         :rtype: bytes
         """
         keys = self.get_conn().projects().locations().keyRings().cryptoKeys()
-        body = {'ciphertext': ciphertext}
+        body = {"ciphertext": ciphertext}
         if authenticated_data:
-            body['additionalAuthenticatedData'] = _b64encode(authenticated_data)
+            body["additionalAuthenticatedData"] = _b64encode(authenticated_data)
 
         request = keys.decrypt(name=key_name, body=body)
         response = request.execute(num_retries=self.num_retries)
 
-        plaintext = _b64decode(response['plaintext'])
+        plaintext = _b64decode(response["plaintext"])
         return plaintext

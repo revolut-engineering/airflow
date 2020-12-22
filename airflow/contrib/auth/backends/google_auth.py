@@ -35,11 +35,10 @@ log = logging.getLogger(__name__)
 
 
 def get_config_param(param):
-    return str(conf.get('google', param))
+    return str(conf.get("google", param))
 
 
 class GoogleUser(models.User):
-
     def __init__(self, user):
         self.user = user
 
@@ -76,11 +75,10 @@ class AuthenticationError(Exception):
 
 
 class GoogleAuthBackend(object):
-
     def __init__(self):
         # self.google_host = get_config_param('host')
         self.login_manager = flask_login.LoginManager()
-        self.login_manager.login_view = 'airflow.login'
+        self.login_manager.login_view = "airflow.login"
         self.flask_app = None
         self.google_oauth = None
         self.api_rev = None
@@ -91,91 +89,90 @@ class GoogleAuthBackend(object):
         self.login_manager.init_app(self.flask_app)
 
         self.google_oauth = OAuth(self.flask_app).remote_app(
-            'google',
-            consumer_key=get_config_param('client_id'),
-            consumer_secret=get_config_param('client_secret'),
-            request_token_params={'scope': [
-                'https://www.googleapis.com/auth/userinfo.profile',
-                'https://www.googleapis.com/auth/userinfo.email']},
-            base_url='https://www.google.com/accounts/',
+            "google",
+            consumer_key=get_config_param("client_id"),
+            consumer_secret=get_config_param("client_secret"),
+            request_token_params={
+                "scope": [
+                    "https://www.googleapis.com/auth/userinfo.profile",
+                    "https://www.googleapis.com/auth/userinfo.email",
+                ]
+            },
+            base_url="https://www.google.com/accounts/",
             request_token_url=None,
-            access_token_method='POST',
-            access_token_url='https://accounts.google.com/o/oauth2/token',
-            authorize_url='https://accounts.google.com/o/oauth2/auth')
+            access_token_method="POST",
+            access_token_url="https://accounts.google.com/o/oauth2/token",
+            authorize_url="https://accounts.google.com/o/oauth2/auth",
+        )
 
         self.login_manager.user_loader(self.load_user)
 
-        self.flask_app.add_url_rule(get_config_param('oauth_callback_route'),
-                                    'google_oauth_callback',
-                                    self.oauth_callback)
+        self.flask_app.add_url_rule(
+            get_config_param("oauth_callback_route"), "google_oauth_callback", self.oauth_callback
+        )
 
     def login(self, request):
-        log.debug('Redirecting user to Google login')
-        return self.google_oauth.authorize(callback=url_for(
-            'google_oauth_callback',
-            _external=True),
-            state=request.args.get('next') or request.referrer or None)
+        log.debug("Redirecting user to Google login")
+        return self.google_oauth.authorize(
+            callback=url_for("google_oauth_callback", _external=True),
+            state=request.args.get("next") or request.referrer or None,
+        )
 
     def get_google_user_profile_info(self, google_token):
         resp = self.google_oauth.get(
-            'https://www.googleapis.com/oauth2/v1/userinfo',
-            token=(google_token, ''))
+            "https://www.googleapis.com/oauth2/v1/userinfo", token=(google_token, "")
+        )
 
         if not resp or resp.status != 200:
             raise AuthenticationError(
-                'Failed to fetch user profile, status ({0})'.format(
-                    resp.status if resp else 'None'))
+                "Failed to fetch user profile, status ({0})".format(
+                    resp.status if resp else "None"
+                )
+            )
 
-        return resp.data['name'], resp.data['email']
+        return resp.data["name"], resp.data["email"]
 
     def domain_check(self, email):
-        domain = email.split('@')[1]
-        domains = get_config_param('domain').split(',')
+        domain = email.split("@")[1]
+        domains = get_config_param("domain").split(",")
         if domain in domains:
             return True
         return False
 
     @provide_session
     def load_user(self, userid, session=None):
-        if not userid or userid == 'None':
+        if not userid or userid == "None":
             return None
 
-        user = session.query(models.User).filter(
-            models.User.id == int(userid)).first()
+        user = session.query(models.User).filter(models.User.id == int(userid)).first()
         return GoogleUser(user)
 
     @provide_session
     def oauth_callback(self, session=None):
-        log.debug('Google OAuth callback called')
+        log.debug("Google OAuth callback called")
 
-        next_url = request.args.get('state') or url_for('admin.index')
+        next_url = request.args.get("state") or url_for("admin.index")
 
         resp = self.google_oauth.authorized_response()
 
         try:
             if resp is None:
-                raise AuthenticationError(
-                    'Null response from Google, denying access.'
-                )
+                raise AuthenticationError("Null response from Google, denying access.")
 
-            google_token = resp['access_token']
+            google_token = resp["access_token"]
 
             username, email = self.get_google_user_profile_info(google_token)
 
             if not self.domain_check(email):
-                return redirect(url_for('airflow.noaccess'))
+                return redirect(url_for("airflow.noaccess"))
 
         except AuthenticationError:
-            return redirect(url_for('airflow.noaccess'))
+            return redirect(url_for("airflow.noaccess"))
 
-        user = session.query(models.User).filter(
-            models.User.username == username).first()
+        user = session.query(models.User).filter(models.User.username == username).first()
 
         if not user:
-            user = models.User(
-                username=username,
-                email=email,
-                is_superuser=False)
+            user = models.User(username=username, email=email, is_superuser=False)
 
         session.merge(user)
         session.commit()

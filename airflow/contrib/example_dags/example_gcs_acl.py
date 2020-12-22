@@ -34,33 +34,32 @@ import os
 
 import airflow
 from airflow import models
-from airflow.contrib.operators.gcs_acl_operator import \
-    GoogleCloudStorageBucketCreateAclEntryOperator, \
-    GoogleCloudStorageObjectCreateAclEntryOperator
+from airflow.contrib.operators.gcs_acl_operator import (
+    GoogleCloudStorageBucketCreateAclEntryOperator,
+    GoogleCloudStorageObjectCreateAclEntryOperator,
+)
 
 # [START howto_operator_gcs_acl_args_common]
-GCS_ACL_BUCKET = os.environ.get('GCS_ACL_BUCKET', 'example-bucket')
-GCS_ACL_OBJECT = os.environ.get('GCS_ACL_OBJECT', 'example-object')
-GCS_ACL_ENTITY = os.environ.get('GCS_ACL_ENTITY', 'example-entity')
-GCS_ACL_BUCKET_ROLE = os.environ.get('GCS_ACL_BUCKET_ROLE', 'example-bucket-role')
-GCS_ACL_OBJECT_ROLE = os.environ.get('GCS_ACL_OBJECT_ROLE', 'example-object-role')
+GCS_ACL_BUCKET = os.environ.get("GCS_ACL_BUCKET", "example-bucket")
+GCS_ACL_OBJECT = os.environ.get("GCS_ACL_OBJECT", "example-object")
+GCS_ACL_ENTITY = os.environ.get("GCS_ACL_ENTITY", "example-entity")
+GCS_ACL_BUCKET_ROLE = os.environ.get("GCS_ACL_BUCKET_ROLE", "example-bucket-role")
+GCS_ACL_OBJECT_ROLE = os.environ.get("GCS_ACL_OBJECT_ROLE", "example-object-role")
 # [END howto_operator_gcs_acl_args_common]
 
-default_args = {
-    'start_date': airflow.utils.dates.days_ago(1)
-}
+default_args = {"start_date": airflow.utils.dates.days_ago(1)}
 
 with models.DAG(
-    'example_gcs_acl',
+    "example_gcs_acl",
     default_args=default_args,
-    schedule_interval=None  # Change to match your use case
+    schedule_interval=None,  # Change to match your use case
 ) as dag:
     # [START howto_operator_gcs_bucket_create_acl_entry_task]
     gcs_bucket_create_acl_entry_task = GoogleCloudStorageBucketCreateAclEntryOperator(
         bucket=GCS_ACL_BUCKET,
         entity=GCS_ACL_ENTITY,
         role=GCS_ACL_BUCKET_ROLE,
-        task_id="gcs_bucket_create_acl_entry_task"
+        task_id="gcs_bucket_create_acl_entry_task",
     )
     # [END howto_operator_gcs_bucket_create_acl_entry_task]
     # [START howto_operator_gcs_object_create_acl_entry_task]
@@ -69,7 +68,7 @@ with models.DAG(
         object_name=GCS_ACL_OBJECT,
         entity=GCS_ACL_ENTITY,
         role=GCS_ACL_OBJECT_ROLE,
-        task_id="gcs_object_create_acl_entry_task"
+        task_id="gcs_object_create_acl_entry_task",
     )
     # [END howto_operator_gcs_object_create_acl_entry_task]
 

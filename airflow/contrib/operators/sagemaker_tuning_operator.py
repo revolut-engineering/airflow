@@ -48,52 +48,53 @@ class SageMakerTuningOperator(SageMakerBaseOperator):
     """
 
     integer_fields = [
-        ['HyperParameterTuningJobConfig', 'ResourceLimits', 'MaxNumberOfTrainingJobs'],
-        ['HyperParameterTuningJobConfig', 'ResourceLimits', 'MaxParallelTrainingJobs'],
-        ['TrainingJobDefinition', 'ResourceConfig', 'InstanceCount'],
-        ['TrainingJobDefinition', 'ResourceConfig', 'VolumeSizeInGB'],
-        ['TrainingJobDefinition', 'StoppingCondition', 'MaxRuntimeInSeconds']
+        ["HyperParameterTuningJobConfig", "ResourceLimits", "MaxNumberOfTrainingJobs"],
+        ["HyperParameterTuningJobConfig", "ResourceLimits", "MaxParallelTrainingJobs"],
+        ["TrainingJobDefinition", "ResourceConfig", "InstanceCount"],
+        ["TrainingJobDefinition", "ResourceConfig", "VolumeSizeInGB"],
+        ["TrainingJobDefinition", "StoppingCondition", "MaxRuntimeInSeconds"],
     ]
 
     @apply_defaults
-    def __init__(self,
-                 config,
-                 wait_for_completion=True,
-                 check_interval=30,
-                 max_ingestion_time=None,
-                 *args, **kwargs):
-        super(SageMakerTuningOperator, self).__init__(config=config,
-                                                      *args, **kwargs)
+    def __init__(
+        self,
+        config,
+        wait_for_completion=True,
+        check_interval=30,
+        max_ingestion_time=None,
+        *args,
+        **kwargs
+    ):
+        super(SageMakerTuningOperator, self).__init__(config=config, *args, **kwargs)
         self.config = config
         self.wait_for_completion = wait_for_completion
         self.check_interval = check_interval
         self.max_ingestion_time = max_ingestion_time
 
     def expand_role(self):
-        if 'TrainingJobDefinition' in self.config:
-            config = self.config['TrainingJobDefinition']
-            if 'RoleArn' in config:
+        if "TrainingJobDefinition" in self.config:
+            config = self.config["TrainingJobDefinition"]
+            if "RoleArn" in config:
                 hook = AwsHook(self.aws_conn_id)
-                config['RoleArn'] = hook.expand_role(config['RoleArn'])
+                config["RoleArn"] = hook.expand_role(config["RoleArn"])
 
     def execute(self, context):
         self.preprocess_config()
 
         self.log.info(
-            'Creating SageMaker Hyper-Parameter Tuning Job %s', self.config['HyperParameterTuningJobName']
+            "Creating SageMaker Hyper-Parameter Tuning Job %s",
+            self.config["HyperParameterTuningJobName"],
         )
 
         response = self.hook.create_tuning_job(
             self.config,
             wait_for_completion=self.wait_for_completion,
             check_interval=self.check_interval,
-            max_ingestion_time=self.max_ingestion_time
+            max_ingestion_time=self.max_ingestion_time,
         )
-        if response['ResponseMetadata']['HTTPStatusCode'] != 200:
-            raise AirflowException('Sagemaker Tuning Job creation failed: %s' % response)
+        if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
+            raise AirflowException("Sagemaker Tuning Job creation failed: %s" % response)
         else:
             return {
-                'Tuning': self.hook.describe_tuning_job(
-                    self.config['HyperParameterTuningJobName']
-                )
+                "Tuning": self.hook.describe_tuning_job(self.config["HyperParameterTuningJobName"])
             }

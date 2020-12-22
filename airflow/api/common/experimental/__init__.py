@@ -33,14 +33,14 @@ def check_and_get_dag(dag_id, task_id=None):  # type: (str, Optional[str]) -> Da
 
     dagbag = DagBag(
         dag_folder=dag_model.fileloc,
-        store_serialized_dags=conf.getboolean('core', 'store_serialized_dags')
+        store_serialized_dags=conf.getboolean("core", "store_serialized_dags"),
     )
     dag = dagbag.get_dag(dag_id)  # prefetch dag if it is stored serialized
     if dag_id not in dagbag.dags:
         error_message = "Dag id {} not found".format(dag_id)
         raise DagNotFound(error_message)
     if task_id and not dag.has_task(task_id):
-        error_message = 'Task {} not found in dag {}'.format(task_id, dag_id)
+        error_message = "Task {} not found in dag {}".format(task_id, dag_id)
         raise TaskNotFound(error_message)
     return dag
 
@@ -49,7 +49,8 @@ def check_and_get_dagrun(dag, execution_date):  # type: (DagModel, datetime) -> 
     """Get DagRun object and check that it exists"""
     dagrun = dag.get_dagrun(execution_date=execution_date)
     if not dagrun:
-        error_message = ('Dag Run for date {} not found in dag {}'
-                         .format(execution_date, dag.dag_id))
+        error_message = "Dag Run for date {} not found in dag {}".format(
+            execution_date, dag.dag_id
+        )
         raise DagRunNotFound(error_message)
     return dagrun

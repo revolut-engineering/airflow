@@ -28,13 +28,13 @@ from airflow.utils.state import State
 
 
 def _trigger_dag(
-        dag_id,  # type: str
-        dag_bag,  # type: DagBag
-        dag_run,  # type: DagModel
-        run_id,  # type: Optional[str]
-        conf,  # type: Optional[Union[dict, str]]
-        execution_date,  # type: Optional[datetime]
-        replace_microseconds,  # type: bool
+    dag_id,  # type: str
+    dag_bag,  # type: DagBag
+    dag_run,  # type: DagModel
+    run_id,  # type: Optional[str]
+    conf,  # type: Optional[Union[dict, str]]
+    execution_date,  # type: Optional[datetime]
+    replace_microseconds,  # type: bool
 ):  # pylint: disable=too-many-arguments
     # type: (...) -> List[DagRun]
     """Triggers DAG run.
@@ -60,23 +60,21 @@ def _trigger_dag(
     if replace_microseconds:
         execution_date = execution_date.replace(microsecond=0)
 
-    if dag.default_args and 'start_date' in dag.default_args:
+    if dag.default_args and "start_date" in dag.default_args:
         min_dag_start_date = dag.default_args["start_date"]
         if min_dag_start_date and execution_date < min_dag_start_date:
             raise ValueError(
                 "The execution_date [{0}] should be >= start_date [{1}] from DAG's default_args".format(
-                    execution_date.isoformat(),
-                    min_dag_start_date.isoformat()))
+                    execution_date.isoformat(), min_dag_start_date.isoformat()
+                )
+            )
 
     if not run_id:
         run_id = "manual__{0}".format(execution_date.isoformat())
 
     dag_run_id = dag_run.find(dag_id=dag_id, run_id=run_id)
     if dag_run_id:
-        raise DagRunAlreadyExists("Run id {} already exists for dag id {}".format(
-            run_id,
-            dag_id
-        ))
+        raise DagRunAlreadyExists("Run id {} already exists for dag id {}".format(run_id, dag_id))
 
     run_conf = None
     if conf:
@@ -100,11 +98,11 @@ def _trigger_dag(
 
 
 def trigger_dag(
-        dag_id,  # type: str
-        run_id=None,  # type: Optional[str]
-        conf=None,  # type: Optional[Union[dict, str]]
-        execution_date=None,  # type: Optional[datetime]
-        replace_microseconds=True,  # type: bool
+    dag_id,  # type: str
+    run_id=None,  # type: Optional[str]
+    conf=None,  # type: Optional[Union[dict, str]]
+    execution_date=None,  # type: Optional[datetime]
+    replace_microseconds=True,  # type: bool
 ):
     """Triggers execution of DAG specified by dag_id
 
@@ -121,10 +119,11 @@ def trigger_dag(
 
     def read_store_serialized_dags():
         from airflow.configuration import conf
-        return conf.getboolean('core', 'store_serialized_dags')
+
+        return conf.getboolean("core", "store_serialized_dags")
+
     dagbag = DagBag(
-        dag_folder=dag_model.fileloc,
-        store_serialized_dags=read_store_serialized_dags()
+        dag_folder=dag_model.fileloc, store_serialized_dags=read_store_serialized_dags()
     )
     dag_run = DagRun()
     triggers = _trigger_dag(

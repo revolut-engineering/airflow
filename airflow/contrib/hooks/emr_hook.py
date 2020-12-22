@@ -35,26 +35,24 @@ class EmrHook(AwsHook):
 
     def get_conn(self):
         if not self.conn:
-            self.conn = self.get_client_type('emr', self.region_name)
+            self.conn = self.get_client_type("emr", self.region_name)
         return self.conn
 
     def get_cluster_id_by_name(self, emr_cluster_name, cluster_states):
         conn = self.get_conn()
 
-        response = conn.list_clusters(
-            ClusterStates=cluster_states
-        )
+        response = conn.list_clusters(ClusterStates=cluster_states)
 
         matching_clusters = list(
-            filter(lambda cluster: cluster['Name'] == emr_cluster_name, response['Clusters'])
+            filter(lambda cluster: cluster["Name"] == emr_cluster_name, response["Clusters"])
         )
 
         if len(matching_clusters) == 1:
-            cluster_id = matching_clusters[0]['Id']
-            self.log.info('Found cluster name = %s id = %s' % (emr_cluster_name, cluster_id))
+            cluster_id = matching_clusters[0]["Id"]
+            self.log.info("Found cluster name = %s id = %s" % (emr_cluster_name, cluster_id))
             return cluster_id
         elif len(matching_clusters) > 1:
-            raise AirflowException('More than one cluster found for name = %s' % emr_cluster_name)
+            raise AirflowException("More than one cluster found for name = %s" % emr_cluster_name)
         else:
             return None
 
@@ -67,7 +65,7 @@ class EmrHook(AwsHook):
         """
 
         if not self.emr_conn_id:
-            raise AirflowException('emr_conn_id must be present to use create_job_flow')
+            raise AirflowException("emr_conn_id must be present to use create_job_flow")
 
         emr_conn = self.get_connection(self.emr_conn_id)
 

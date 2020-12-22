@@ -21,15 +21,9 @@ import airflow
 from airflow.operators.python_operator import PythonOperator
 from airflow.models import DAG
 
-args = {
-    'owner': 'airflow',
-    'start_date': airflow.utils.dates.days_ago(2)
-}
+args = {"owner": "airflow", "start_date": airflow.utils.dates.days_ago(2)}
 
-dag = DAG(
-    dag_id='example_kubernetes_annotation', default_args=args,
-    schedule_interval=None
-)
+dag = DAG(dag_id="example_kubernetes_annotation", default_args=args, schedule_interval=None)
 
 
 def print_stuff():
@@ -38,10 +32,8 @@ def print_stuff():
 
 # You can use annotations on your kubernetes pods!
 start_task = PythonOperator(
-    task_id="start_task", python_callable=print_stuff, dag=dag,
-    executor_config={
-        "KubernetesExecutor": {
-            "annotations": {"test": "annotation"}
-        }
-    }
+    task_id="start_task",
+    python_callable=print_stuff,
+    dag=dag,
+    executor_config={"KubernetesExecutor": {"annotations": {"test": "annotation"}}},
 )

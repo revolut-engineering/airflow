@@ -39,51 +39,38 @@ from airflow.utils.dates import days_ago
 
 
 default_args = {
-    'owner': 'Airflow',
-    'email': ['airflow@example.com'],
-    'depends_on_past': False,
-    'start_date': days_ago(2)
+    "owner": "Airflow",
+    "email": ["airflow@example.com"],
+    "depends_on_past": False,
+    "start_date": days_ago(2),
 }
 
 with DAG(
-    dag_id='example_databricks_operator',
-    default_args=default_args,
-    schedule_interval='@daily'
+    dag_id="example_databricks_operator", default_args=default_args, schedule_interval="@daily"
 ) as dag:
     new_cluster = {
-        'spark_version': '2.1.0-db3-scala2.11',
-        'node_type_id': 'r3.xlarge',
-        'aws_attributes': {
-            'availability': 'ON_DEMAND'
-        },
-        'num_workers': 8
+        "spark_version": "2.1.0-db3-scala2.11",
+        "node_type_id": "r3.xlarge",
+        "aws_attributes": {"availability": "ON_DEMAND"},
+        "num_workers": 8,
     }
 
     notebook_task_params = {
-        'new_cluster': new_cluster,
-        'notebook_task': {
-            'notebook_path': '/Users/airflow@example.com/PrepareData',
+        "new_cluster": new_cluster,
+        "notebook_task": {
+            "notebook_path": "/Users/airflow@example.com/PrepareData",
         },
     }
     # Example of using the JSON parameter to initialize the operator.
-    notebook_task = DatabricksSubmitRunOperator(
-        task_id='notebook_task',
-        json=notebook_task_params
-    )
+    notebook_task = DatabricksSubmitRunOperator(task_id="notebook_task", json=notebook_task_params)
 
     # Example of using the named parameters of DatabricksSubmitRunOperator
     # to initialize the operator.
     spark_jar_task = DatabricksSubmitRunOperator(
-        task_id='spark_jar_task',
+        task_id="spark_jar_task",
         new_cluster=new_cluster,
-        spark_jar_task={
-            'main_class_name': 'com.example.ProcessData'
-        },
-        libraries=[
-            {
-                'jar': 'dbfs:/lib/etl-0.1.jar'
-            }
-        ]
+        spark_jar_task={"main_class_name": "com.example.ProcessData"},
+        libraries=[{"jar": "dbfs:/lib/etl-0.1.jar"}],
     )
 
     notebook_task >> spark_jar_task

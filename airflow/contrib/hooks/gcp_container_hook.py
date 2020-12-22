@@ -35,13 +35,8 @@ OPERATIONAL_POLL_INTERVAL = 15
 
 
 class GKEClusterHook(GoogleCloudBaseHook):
-
-    def __init__(self,
-                 gcp_conn_id='google_cloud_default',
-                 delegate_to=None,
-                 location=None):
-        super(GKEClusterHook, self).__init__(
-            gcp_conn_id=gcp_conn_id, delegate_to=delegate_to)
+    def __init__(self, gcp_conn_id="google_cloud_default", delegate_to=None, location=None):
+        super(GKEClusterHook, self).__init__(gcp_conn_id=gcp_conn_id, delegate_to=delegate_to)
         self._client = None
         self.location = location
 
@@ -49,8 +44,10 @@ class GKEClusterHook(GoogleCloudBaseHook):
         if self._client is None:
             credentials = self._get_credentials()
             # Add client library info for better error tracking
-            client_info = ClientInfo(client_library_version='airflow_v' + version.version)
-            self._client = container_v1.ClusterManagerClient(credentials=credentials, client_info=client_info)
+            client_info = ClientInfo(client_library_version="airflow_v" + version.version)
+            self._client = container_v1.ClusterManagerClient(
+                credentials=credentials, client_info=client_info
+            )
         return self._client
 
     @staticmethod
@@ -83,14 +80,19 @@ class GKEClusterHook(GoogleCloudBaseHook):
         self.log.info("Waiting for OPERATION_NAME %s", operation.name)
         time.sleep(OPERATIONAL_POLL_INTERVAL)
         while operation.status != Operation.Status.DONE:
-            if operation.status == Operation.Status.RUNNING or operation.status == \
-                    Operation.Status.PENDING:
+            if (
+                operation.status == Operation.Status.RUNNING
+                or operation.status == Operation.Status.PENDING
+            ):
                 time.sleep(OPERATIONAL_POLL_INTERVAL)
             else:
                 raise exceptions.GoogleCloudError(
-                    "Operation has failed with status: %s" % operation.status)
+                    "Operation has failed with status: %s" % operation.status
+                )
             # To update status of operation
-            operation = self.get_operation(operation.name, project_id=project_id or self.project_id)
+            operation = self.get_operation(
+                operation.name, project_id=project_id or self.project_id
+            )
         return operation
 
     def get_operation(self, operation_name, project_id=None):
@@ -103,9 +105,11 @@ class GKEClusterHook(GoogleCloudBaseHook):
         :type project_id: str
         :return: The new, updated operation from Google Cloud
         """
-        return self.get_client().get_operation(project_id=project_id or self.project_id,
-                                               zone=self.location,
-                                               operation_id=operation_name)
+        return self.get_client().get_operation(
+            project_id=project_id or self.project_id,
+            zone=self.location,
+            operation_id=operation_name,
+        )
 
     @staticmethod
     def _append_label(cluster_proto, key, val):
@@ -124,7 +128,7 @@ class GKEClusterHook(GoogleCloudBaseHook):
         :type val: str
         :return: The cluster proto updated with new label
         """
-        val = val.replace('.', '-').replace('+', '-')
+        val = val.replace(".", "-").replace("+", "-")
         cluster_proto.resource_labels.update({key: val})
         return cluster_proto
 
@@ -152,20 +156,25 @@ class GKEClusterHook(GoogleCloudBaseHook):
         """
 
         self.log.info(
-            "Deleting (project_id=%s, zone=%s, cluster_id=%s)", self.project_id, self.location, name
+            "Deleting (project_id=%s, zone=%s, cluster_id=%s)",
+            self.project_id,
+            self.location,
+            name,
         )
 
         try:
-            op = self.get_client().delete_cluster(project_id=project_id or self.project_id,
-                                                  zone=self.location,
-                                                  cluster_id=name,
-                                                  retry=retry,
-                                                  timeout=timeout)
+            op = self.get_client().delete_cluster(
+                project_id=project_id or self.project_id,
+                zone=self.location,
+                cluster_id=name,
+                retry=retry,
+                timeout=timeout,
+            )
             op = self.wait_for_operation(op)
             # Returns server-defined url for the resource
             return op.self_link
         except NotFound as error:
-            self.log.info('Assuming Success: %s', error.message)
+            self.log.info("Assuming Success: %s", error.message)
 
     def create_cluster(self, cluster, project_id=None, retry=DEFAULT, timeout=DEFAULT):
         """
@@ -196,26 +205,29 @@ class GKEClusterHook(GoogleCloudBaseHook):
             cluster_proto = Cluster()
             cluster = self._dict_to_proto(py_dict=cluster, proto=cluster_proto)
         elif not isinstance(cluster, Cluster):
-            raise AirflowException(
-                "cluster is not instance of Cluster proto or python dict")
+            raise AirflowException("cluster is not instance of Cluster proto or python dict")
 
-        self._append_label(cluster, 'airflow-version', 'v' + version.version)
+        self._append_label(cluster, "airflow-version", "v" + version.version)
 
         self.log.info(
             "Creating (project_id=%s, zone=%s, cluster_name=%s)",
-            self.project_id, self.location, cluster.name
+            self.project_id,
+            self.location,
+            cluster.name,
         )
         try:
-            op = self.get_client().create_cluster(project_id=project_id or self.project_id,
-                                                  zone=self.location,
-                                                  cluster=cluster,
-                                                  retry=retry,
-                                                  timeout=timeout)
+            op = self.get_client().create_cluster(
+                project_id=project_id or self.project_id,
+                zone=self.location,
+                cluster=cluster,
+                retry=retry,
+                timeout=timeout,
+            )
             op = self.wait_for_operation(op)
 
             return op.target_link
         except AlreadyExists as error:
-            self.log.info('Assuming Success: %s', error.message)
+            self.log.info("Assuming Success: %s", error.message)
             return self.get_cluster(name=cluster.name).self_link
 
     def get_cluster(self, name, project_id=None, retry=DEFAULT, timeout=DEFAULT):
@@ -237,11 +249,19 @@ class GKEClusterHook(GoogleCloudBaseHook):
         """
         self.log.info(
             "Fetching cluster (project_id=%s, zone=%s, cluster_name=%s)",
-            project_id or self.project_id, self.location, name
+            project_id or self.project_id,
+            self.location,
+            name,
         )
 
-        return self.get_client().get_cluster(project_id=project_id or self.project_id,
-                                             zone=self.location,
-                                             cluster_id=name,
-                                             retry=retry,
-                                             timeout=timeout).self_link
+        return (
+            self.get_client()
+            .get_cluster(
+                project_id=project_id or self.project_id,
+                zone=self.location,
+                cluster_id=name,
+                retry=retry,
+                timeout=timeout,
+            )
+            .self_link
+        )

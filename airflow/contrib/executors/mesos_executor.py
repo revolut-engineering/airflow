@@ -33,14 +33,14 @@ from airflow.utils.state import State
 from airflow.exceptions import AirflowException
 
 standard_library.install_aliases()
-DEFAULT_FRAMEWORK_NAME = 'Airflow'
-FRAMEWORK_CONNID_PREFIX = 'mesos_framework_'
+DEFAULT_FRAMEWORK_NAME = "Airflow"
+FRAMEWORK_CONNID_PREFIX = "mesos_framework_"
 
 
 def get_framework_name():
-    if not conf.get('mesos', 'FRAMEWORK_NAME'):
+    if not conf.get("mesos", "FRAMEWORK_NAME"):
         return DEFAULT_FRAMEWORK_NAME
-    return conf.get('mesos', 'FRAMEWORK_NAME')
+    return conf.get("mesos", "FRAMEWORK_NAME")
 
 
 # AirflowMesosScheduler, implements Mesos Scheduler interface
@@ -53,28 +53,23 @@ class AirflowMesosScheduler(mesos.interface.Scheduler):
     'airflow run <dag_id> <task_instance_id> <start_date> --local -p=<pickle>'
     to run on a mesos slave.
     """
-    def __init__(self,
-                 task_queue,
-                 result_queue,
-                 task_cpu=1,
-                 task_mem=256):
+
+    def __init__(self, task_queue, result_queue, task_cpu=1, task_mem=256):
         self.task_queue = task_queue
         self.result_queue = result_queue
         self.task_cpu = task_cpu
         self.task_mem = task_mem
         self.task_counter = 0
         self.task_key_map = {}
-        if conf.get('mesos', 'DOCKER_IMAGE_SLAVE'):
-            self.mesos_slave_docker_image = conf.get(
-                'mesos', 'DOCKER_IMAGE_SLAVE'
-            )
+        if conf.get("mesos", "DOCKER_IMAGE_SLAVE"):
+            self.mesos_slave_docker_image = conf.get("mesos", "DOCKER_IMAGE_SLAVE")
 
     def registered(self, driver, frameworkId, masterInfo):
-        self.log.info("AirflowScheduler registered to Mesos with framework ID %s",
-                      frameworkId.value)
+        self.log.info(
+            "AirflowScheduler registered to Mesos with framework ID %s", frameworkId.value
+        )
 
-        if conf.getboolean('mesos', 'CHECKPOINT') and \
-                conf.get('mesos', 'FAILOVER_TIMEOUT'):
+        if conf.getboolean("mesos", "CHECKPOINT") and conf.get("mesos", "FAILOVER_TIMEOUT"):
             # Import here to work around a circular import error
             from airflow.models import Connection
 
@@ -83,8 +78,9 @@ class AirflowMesosScheduler(mesos.interface.Scheduler):
             conn_id = FRAMEWORK_CONNID_PREFIX + get_framework_name()
             connection = Session.query(Connection).filter_by(conn_id=conn_id).first()
             if connection is None:
-                connection = Connection(conn_id=conn_id, conn_type='mesos_framework-id',
-                                        extra=frameworkId.value)
+                connection = Connection(
+                    conn_id=conn_id, conn_type="mesos_framework-id", extra=frameworkId.value
+                )
             else:
                 connection.extra = frameworkId.value
 
@@ -125,15 +121,18 @@ class AirflowMesosScheduler(mesos.interface.Scheduler):
                 elif resource.name == "mem":
                     offerMem += resource.scalar.value
 
-            self.log.info("Received offer %s with cpus: %s and mem: %s",
-                          offer.id.value, offerCpus, offerMem)
+            self.log.info(
+                "Received offer %s with cpus: %s and mem: %s", offer.id.value, offerCpus, offerMem
+            )
 
             remainingCpus = offerCpus
             remainingMem = offerMem
 
-            while (not self.task_queue.empty()) and \
-                    remainingCpus >= self.task_cpu and \
-                    remainingMem >= self.task_mem:
+            while (
+                (not self.task_queue.empty())
+                and remainingCpus >= self.task_cpu
+                and remainingMem >= self.task_mem
+            ):
                 key, cmd = self.task_queue.get()
                 tid = self.task_counter
                 self.task_counter += 1
@@ -164,15 +163,14 @@ class AirflowMesosScheduler(mesos.interface.Scheduler):
                 # If docker image for airflow is specified in config then pull that
                 # image before running the above airflow command
                 if self.mesos_slave_docker_image:
-                    network = mesos_pb2.ContainerInfo.DockerInfo.Network.Value('BRIDGE')
+                    network = mesos_pb2.ContainerInfo.DockerInfo.Network.Value("BRIDGE")
                     docker = mesos_pb2.ContainerInfo.DockerInfo(
                         image=self.mesos_slave_docker_image,
                         force_pull_image=False,
-                        network=network
+                        network=network,
                     )
                     container = mesos_pb2.ContainerInfo(
-                        type=mesos_pb2.ContainerInfo.DOCKER,
-                        docker=docker
+                        type=mesos_pb2.ContainerInfo.DOCKER, docker=docker
                     )
                     task.container.MergeFrom(container)
 
@@ -186,7 +184,9 @@ class AirflowMesosScheduler(mesos.interface.Scheduler):
     def statusUpdate(self, driver, update):
         self.log.info(
             "Task %s is in state %s, data %s",
-            update.task_id.value, mesos_pb2.TaskState.Name(update.state), str(update.data)
+            update.task_id.value,
+            mesos_pb2.TaskState.Name(update.state),
+            str(update.data),
         )
 
         try:
@@ -202,9 +202,11 @@ class AirflowMesosScheduler(mesos.interface.Scheduler):
             self.result_queue.put((key, State.SUCCESS))
             self.task_queue.task_done()
 
-        if update.state == mesos_pb2.TASK_LOST or \
-           update.state == mesos_pb2.TASK_KILLED or \
-           update.state == mesos_pb2.TASK_FAILED:
+        if (
+            update.state == mesos_pb2.TASK_LOST
+            or update.state == mesos_pb2.TASK_KILLED
+            or update.state == mesos_pb2.TASK_FAILED
+        ):
             self.result_queue.put((key, State.FAILED))
             self.task_queue.task_done()
 
@@ -220,34 +222,35 @@ class MesosExecutor(BaseExecutor):
     elastic distributed systems to easily be built and run effectively.
     See http://mesos.apache.org/
     """
+
     def start(self):
         self.task_queue = Queue()
         self.result_queue = Queue()
         framework = mesos_pb2.FrameworkInfo()
-        framework.user = ''
+        framework.user = ""
 
-        if not conf.get('mesos', 'MASTER'):
+        if not conf.get("mesos", "MASTER"):
             self.log.error("Expecting mesos master URL for mesos executor")
             raise AirflowException("mesos.master not provided for mesos executor")
 
-        master = conf.get('mesos', 'MASTER')
+        master = conf.get("mesos", "MASTER")
 
         framework.name = get_framework_name()
 
-        if not conf.get('mesos', 'TASK_CPU'):
+        if not conf.get("mesos", "TASK_CPU"):
             task_cpu = 1
         else:
-            task_cpu = conf.getint('mesos', 'TASK_CPU')
+            task_cpu = conf.getint("mesos", "TASK_CPU")
 
-        if not conf.get('mesos', 'TASK_MEMORY'):
+        if not conf.get("mesos", "TASK_MEMORY"):
             task_memory = 256
         else:
-            task_memory = conf.getint('mesos', 'TASK_MEMORY')
+            task_memory = conf.getint("mesos", "TASK_MEMORY")
 
-        if conf.getboolean('mesos', 'CHECKPOINT'):
+        if conf.getboolean("mesos", "CHECKPOINT"):
             framework.checkpoint = True
 
-            if conf.get('mesos', 'FAILOVER_TIMEOUT'):
+            if conf.get("mesos", "FAILOVER_TIMEOUT"):
                 # Import here to work around a circular import error
                 from airflow.models import Connection
 
@@ -260,55 +263,52 @@ class MesosExecutor(BaseExecutor):
                     # with running tasks.
                     framework.id.value = connection.extra
 
-                framework.failover_timeout = conf.getint(
-                    'mesos', 'FAILOVER_TIMEOUT'
-                )
+                framework.failover_timeout = conf.getint("mesos", "FAILOVER_TIMEOUT")
         else:
             framework.checkpoint = False
 
         self.log.info(
-            'MesosFramework master : %s, name : %s, cpu : %s, mem : %s, checkpoint : %s',
-            master, framework.name,
-            str(task_cpu), str(task_memory), str(framework.checkpoint)
+            "MesosFramework master : %s, name : %s, cpu : %s, mem : %s, checkpoint : %s",
+            master,
+            framework.name,
+            str(task_cpu),
+            str(task_memory),
+            str(framework.checkpoint),
         )
 
         implicit_acknowledgements = 1
 
-        if conf.getboolean('mesos', 'AUTHENTICATE'):
-            if not conf.get('mesos', 'DEFAULT_PRINCIPAL'):
+        if conf.getboolean("mesos", "AUTHENTICATE"):
+            if not conf.get("mesos", "DEFAULT_PRINCIPAL"):
                 self.log.error("Expecting authentication principal in the environment")
                 raise AirflowException(
-                    "mesos.default_principal not provided in authenticated mode")
-            if not conf.get('mesos', 'DEFAULT_SECRET'):
+                    "mesos.default_principal not provided in authenticated mode"
+                )
+            if not conf.get("mesos", "DEFAULT_SECRET"):
                 self.log.error("Expecting authentication secret in the environment")
-                raise AirflowException(
-                    "mesos.default_secret not provided in authenticated mode")
+                raise AirflowException("mesos.default_secret not provided in authenticated mode")
 
             credential = mesos_pb2.Credential()
-            credential.principal = conf.get('mesos', 'DEFAULT_PRINCIPAL')
-            credential.secret = conf.get('mesos', 'DEFAULT_SECRET')
+            credential.principal = conf.get("mesos", "DEFAULT_PRINCIPAL")
+            credential.secret = conf.get("mesos", "DEFAULT_SECRET")
 
             framework.principal = credential.principal
 
             driver = mesos.native.MesosSchedulerDriver(
-                AirflowMesosScheduler(self.task_queue,
-                                      self.result_queue,
-                                      task_cpu,
-                                      task_memory),
+                AirflowMesosScheduler(self.task_queue, self.result_queue, task_cpu, task_memory),
                 framework,
                 master,
                 implicit_acknowledgements,
-                credential)
+                credential,
+            )
         else:
-            framework.principal = 'Airflow'
+            framework.principal = "Airflow"
             driver = mesos.native.MesosSchedulerDriver(
-                AirflowMesosScheduler(self.task_queue,
-                                      self.result_queue,
-                                      task_cpu,
-                                      task_memory),
+                AirflowMesosScheduler(self.task_queue, self.result_queue, task_cpu, task_memory),
                 framework,
                 master,
-                implicit_acknowledgements)
+                implicit_acknowledgements,
+            )
 
         self.mesos_driver = driver
         self.mesos_driver.start()
