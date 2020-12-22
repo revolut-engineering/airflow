@@ -73,14 +73,14 @@ def transfertodb():
 # --------------------------------------------------------------------------------
 
 default_args = {
-    "owner": "Ekhtiar",
-    "depends_on_past": False,
-    "start_date": days_ago(5),
-    "email": ["airflow@example.com"],
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 1,
-    "retry_delay": timedelta(minutes=5),
+    'owner': 'Ekhtiar',
+    'depends_on_past': False,
+    'start_date': days_ago(5),
+    'email': ['airflow@example.com'],
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5),
     # 'queue': 'bash_queue',
     # 'pool': 'backfill',
     # 'priority_weight': 10,
@@ -88,7 +88,9 @@ default_args = {
 }
 
 with DAG(
-    dag_id="example_twitter_dag", default_args=default_args, schedule_interval="@daily"
+    dag_id='example_twitter_dag',
+    default_args=default_args,
+    schedule_interval="@daily"
 ) as dag:
 
     # --------------------------------------------------------------------------------
@@ -98,14 +100,20 @@ with DAG(
     # is direction(from or to)_twitterHandle_date.csv
     # --------------------------------------------------------------------------------
 
-    fetch_tweets = PythonOperator(task_id="fetch_tweets", python_callable=fetchtweets)
+    fetch_tweets = PythonOperator(
+        task_id='fetch_tweets',
+        python_callable=fetchtweets
+    )
 
     # --------------------------------------------------------------------------------
     # Clean the eight files. In this step you can get rid of or cherry pick columns
     # and different parts of the text
     # --------------------------------------------------------------------------------
 
-    clean_tweets = PythonOperator(task_id="clean_tweets", python_callable=cleantweets)
+    clean_tweets = PythonOperator(
+        task_id='clean_tweets',
+        python_callable=cleantweets
+    )
 
     clean_tweets << fetch_tweets
 
@@ -115,7 +123,10 @@ with DAG(
     # complicated. You can also take a look at Web Services to do such tasks
     # --------------------------------------------------------------------------------
 
-    analyze_tweets = PythonOperator(task_id="analyze_tweets", python_callable=analyzetweets)
+    analyze_tweets = PythonOperator(
+        task_id='analyze_tweets',
+        python_callable=analyzetweets
+    )
 
     analyze_tweets << clean_tweets
 
@@ -125,7 +136,10 @@ with DAG(
     # it to MySQL
     # --------------------------------------------------------------------------------
 
-    hive_to_mysql = PythonOperator(task_id="hive_to_mysql", python_callable=transfertodb)
+    hive_to_mysql = PythonOperator(
+        task_id='hive_to_mysql',
+        python_callable=transfertodb
+    )
 
     # --------------------------------------------------------------------------------
     # The following tasks are generated using for loop. The first task puts the eight
@@ -135,8 +149,8 @@ with DAG(
     # and hence they are kept separated in this example.
     # --------------------------------------------------------------------------------
 
-    from_channels = ["fromTwitter_A", "fromTwitter_B", "fromTwitter_C", "fromTwitter_D"]
-    to_channels = ["toTwitter_A", "toTwitter_B", "toTwitter_C", "toTwitter_D"]
+    from_channels = ['fromTwitter_A', 'fromTwitter_B', 'fromTwitter_C', 'fromTwitter_D']
+    to_channels = ['toTwitter_A', 'toTwitter_B', 'toTwitter_C', 'toTwitter_D']
     yesterday = date.today() - timedelta(days=1)
     dt = yesterday.strftime("%Y-%m-%d")
     # define where you want to store the tweets csv file in your local directory
@@ -150,21 +164,19 @@ with DAG(
 
         load_to_hdfs = BashOperator(
             task_id="put_" + channel + "_to_hdfs",
-            bash_command="HADOOP_USER_NAME=hdfs hadoop fs -put -f "
-            + local_dir
-            + file_name
-            + hdfs_dir
-            + channel
-            + "/",
+            bash_command="HADOOP_USER_NAME=hdfs hadoop fs -put -f " +
+                         local_dir + file_name +
+                         hdfs_dir + channel + "/"
         )
 
         load_to_hdfs << analyze_tweets
 
         load_to_hive = HiveOperator(
             task_id="load_" + channel + "_to_hive",
-            hql="LOAD DATA INPATH '" + hdfs_dir + channel + "/" + file_name + "' "
-            "INTO TABLE " + channel + " "
-            "PARTITION(dt='" + dt + "')",
+            hql="LOAD DATA INPATH '" +
+                hdfs_dir + channel + "/" + file_name + "' "
+                "INTO TABLE " + channel + " "
+                "PARTITION(dt='" + dt + "')"
         )
         load_to_hive << load_to_hdfs
         load_to_hive >> hive_to_mysql
@@ -173,21 +185,19 @@ with DAG(
         file_name = "from_" + channel + "_" + yesterday.strftime("%Y-%m-%d") + ".csv"
         load_to_hdfs = BashOperator(
             task_id="put_" + channel + "_to_hdfs",
-            bash_command="HADOOP_USER_NAME=hdfs hadoop fs -put -f "
-            + local_dir
-            + file_name
-            + hdfs_dir
-            + channel
-            + "/",
+            bash_command="HADOOP_USER_NAME=hdfs hadoop fs -put -f " +
+                         local_dir + file_name +
+                         hdfs_dir + channel + "/"
         )
 
         load_to_hdfs << analyze_tweets
 
         load_to_hive = HiveOperator(
             task_id="load_" + channel + "_to_hive",
-            hql="LOAD DATA INPATH '" + hdfs_dir + channel + "/" + file_name + "' "
-            "INTO TABLE " + channel + " "
-            "PARTITION(dt='" + dt + "')",
+            hql="LOAD DATA INPATH '" +
+                hdfs_dir + channel + "/" + file_name + "' "
+                "INTO TABLE " + channel + " "
+                "PARTITION(dt='" + dt + "')"
         )
 
         load_to_hive << load_to_hdfs

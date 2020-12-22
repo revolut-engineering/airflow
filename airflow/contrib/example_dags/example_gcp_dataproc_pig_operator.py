@@ -26,14 +26,14 @@ from airflow import models
 from airflow.contrib.operators.dataproc_operator import (
     DataProcPigOperator,
     DataprocClusterCreateOperator,
-    DataprocClusterDeleteOperator,
+    DataprocClusterDeleteOperator
 )
 
 default_args = {"start_date": airflow.utils.dates.days_ago(1)}
 
-CLUSTER_NAME = os.environ.get("GCP_DATAPROC_CLUSTER_NAME", "example-project")
-PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "an-id")
-REGION = os.environ.get("GCP_LOCATION", "europe-west1")
+CLUSTER_NAME = os.environ.get('GCP_DATAPROC_CLUSTER_NAME', 'example-project')
+PROJECT_ID = os.environ.get('GCP_PROJECT_ID', 'an-id')
+REGION = os.environ.get('GCP_LOCATION', 'europe-west1')
 
 
 with models.DAG(
@@ -46,18 +46,21 @@ with models.DAG(
         cluster_name=CLUSTER_NAME,
         project_id=PROJECT_ID,
         region=REGION,
-        num_workers=2,
+        num_workers=2
     )
 
     pig_task = DataProcPigOperator(
         task_id="pig_task",
         query="define sin HiveUDF('sin');",
         region=REGION,
-        cluster_name=CLUSTER_NAME,
+        cluster_name=CLUSTER_NAME
     )
 
     delete_task = DataprocClusterDeleteOperator(
-        task_id="delete_task", project_id=PROJECT_ID, cluster_name=CLUSTER_NAME, region=REGION
+        task_id="delete_task",
+        project_id=PROJECT_ID,
+        cluster_name=CLUSTER_NAME,
+        region=REGION
     )
 
     create_task >> pig_task >> delete_task

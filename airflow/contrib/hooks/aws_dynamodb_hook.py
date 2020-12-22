@@ -37,7 +37,11 @@ class AwsDynamoDBHook(AwsHook):
     :type region_name: str
     """
 
-    def __init__(self, table_keys=None, table_name=None, region_name=None, *args, **kwargs):
+    def __init__(self,
+                 table_keys=None,
+                 table_name=None,
+                 region_name=None,
+                 *args, **kwargs):
         self.table_keys = table_keys
         self.table_name = table_name
         self.region_name = region_name
@@ -45,7 +49,7 @@ class AwsDynamoDBHook(AwsHook):
         super(AwsDynamoDBHook, self).__init__(*args, **kwargs)
 
     def get_conn(self):
-        self.conn = self.get_resource_type("dynamodb", self.region_name)
+        self.conn = self.get_resource_type('dynamodb', self.region_name)
         return self.conn
 
     def write_batch_data(self, items):
@@ -64,7 +68,7 @@ class AwsDynamoDBHook(AwsHook):
             return True
         except Exception as general_error:
             raise AirflowException(
-                "Failed to insert items in dynamodb, error: {error}".format(
+                'Failed to insert items in dynamodb, error: {error}'.format(
                     error=str(general_error)
                 )
             )

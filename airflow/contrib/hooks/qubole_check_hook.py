@@ -29,8 +29,8 @@ except ImportError:
     from io import StringIO
 
 
-COL_DELIM = "\t"
-ROW_DELIM = "\r\n"
+COL_DELIM = '\t'
+ROW_DELIM = '\r\n'
 
 
 log = logging.getLogger(__name__)
@@ -70,7 +70,7 @@ def parse_first_row(row_list):
         elif isfloat(col_value):
             col_value = float(col_value)
         elif isbool(col_value):
-            col_value = col_value.lower() == "true"
+            col_value = (col_value.lower() == "true")
         record_list.append(col_value)
 
     return record_list
@@ -80,22 +80,23 @@ class QuboleCheckHook(QuboleHook):
     def __init__(self, context, *args, **kwargs):
         super(QuboleCheckHook, self).__init__(*args, **kwargs)
         self.results_parser_callable = parse_first_row
-        if "results_parser_callable" in kwargs and kwargs["results_parser_callable"] is not None:
-            if not callable(kwargs["results_parser_callable"]):
-                raise AirflowException("`results_parser_callable` param must be callable")
-            self.results_parser_callable = kwargs["results_parser_callable"]
+        if 'results_parser_callable' in kwargs and \
+                kwargs['results_parser_callable'] is not None:
+            if not callable(kwargs['results_parser_callable']):
+                raise AirflowException('`results_parser_callable` param must be callable')
+            self.results_parser_callable = kwargs['results_parser_callable']
         self.context = context
 
     @staticmethod
     def handle_failure_retry(context):
-        ti = context["ti"]
-        cmd_id = ti.xcom_pull(key="qbol_cmd_id", task_ids=ti.task_id)
+        ti = context['ti']
+        cmd_id = ti.xcom_pull(key='qbol_cmd_id', task_ids=ti.task_id)
 
         if cmd_id is not None:
             cmd = Command.find(cmd_id)
             if cmd is not None:
-                if cmd.status == "running":
-                    log.info("Cancelling the Qubole Command Id: %s", cmd_id)
+                if cmd.status == 'running':
+                    log.info('Cancelling the Qubole Command Id: %s', cmd_id)
                     cmd.cancel()
 
     def get_first(self, sql):

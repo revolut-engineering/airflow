@@ -28,9 +28,8 @@ class PinotDbApiHook(DbApiHook):
     """
     Connect to pinot db(https://github.com/linkedin/pinot) to issue pql
     """
-
-    conn_name_attr = "pinot_broker_conn_id"
-    default_conn_name = "pinot_broker_default"
+    conn_name_attr = 'pinot_broker_conn_id'
+    default_conn_name = 'pinot_broker_default'
     supports_autocommit = False
 
     def __init__(self, *args, **kwargs):
@@ -44,10 +43,11 @@ class PinotDbApiHook(DbApiHook):
         pinot_broker_conn = connect(
             host=conn.host,
             port=conn.port,
-            path=conn.extra_dejson.get("endpoint", "/pql"),
-            scheme=conn.extra_dejson.get("schema", "http"),
+            path=conn.extra_dejson.get('endpoint', '/pql'),
+            scheme=conn.extra_dejson.get('schema', 'http')
         )
-        self.log.info("Get the connection to pinot " "broker on {host}".format(host=conn.host))
+        self.log.info('Get the connection to pinot '
+                      'broker on {host}'.format(host=conn.host))
         return pinot_broker_conn
 
     def get_uri(self):
@@ -59,12 +59,11 @@ class PinotDbApiHook(DbApiHook):
         conn = self.get_connection(getattr(self, self.conn_name_attr))
         host = conn.host
         if conn.port is not None:
-            host += ":{port}".format(port=conn.port)
-        conn_type = "http" if not conn.conn_type else conn.conn_type
-        endpoint = conn.extra_dejson.get("endpoint", "pql")
-        return "{conn_type}://{host}/{endpoint}".format(
-            conn_type=conn_type, host=host, endpoint=endpoint
-        )
+            host += ':{port}'.format(port=conn.port)
+        conn_type = 'http' if not conn.conn_type else conn.conn_type
+        endpoint = conn.extra_dejson.get('endpoint', 'pql')
+        return '{conn_type}://{host}/{endpoint}'.format(
+            conn_type=conn_type, host=host, endpoint=endpoint)
 
     def get_records(self, sql):
         """
@@ -75,7 +74,7 @@ class PinotDbApiHook(DbApiHook):
         :type sql: str
         """
         if six.PY2:
-            sql = sql.encode("utf-8")
+            sql = sql.encode('utf-8')
 
         with self.get_conn() as cur:
             cur.execute(sql)
@@ -90,7 +89,7 @@ class PinotDbApiHook(DbApiHook):
         :type sql: str or list
         """
         if six.PY2:
-            sql = sql.encode("utf-8")
+            sql = sql.encode('utf-8')
 
         with self.get_conn() as cur:
             cur.execute(sql)

@@ -20,7 +20,6 @@
 import logging
 import flask_login
 from airflow.exceptions import AirflowConfigException
-
 # Need to expose these downstream
 # flake8: noqa: F401
 from flask_login import current_user, login_required, logout_user
@@ -42,7 +41,7 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 
 # pylint: disable=c-extension-no-member
 LOGIN_MANAGER = flask_login.LoginManager()
-LOGIN_MANAGER.login_view = "airflow.login"  # Calls login() below
+LOGIN_MANAGER.login_view = 'airflow.login'  # Calls login() below
 LOGIN_MANAGER.login_message = None
 
 
@@ -52,13 +51,15 @@ class AuthenticationError(Exception):
 
 class KerberosUser(models.User, LoggingMixin):
     """User authenticated with Kerberos"""
-
     def __init__(self, user):
         self.user = user
 
     @staticmethod
     def authenticate(username, password):
-        service_principal = "%s/%s" % (conf.get("kerberos", "principal"), utils.get_fqdn())
+        service_principal = "%s/%s" % (
+            conf.get('kerberos', 'principal'),
+            utils.get_fqdn()
+        )
         realm = conf.get("kerberos", "default_realm")
 
         try:
@@ -70,17 +71,14 @@ class KerberosUser(models.User, LoggingMixin):
 
         try:
             # this is pykerberos specific, verify = True is needed to prevent KDC spoofing
-            if not kerberos.checkPassword(
-                user_principal, password, service_principal, realm, True
-            ):
+            if not kerberos.checkPassword(user_principal,
+                                          password,
+                                          service_principal, realm, True):
                 raise AuthenticationError()
         except kerberos.KrbError as e:
             logging.error(
-                "Password validation for user " "%s in realm %s failed %s",
-                user_principal,
-                realm,
-                e,
-            )
+                'Password validation for user '
+                '%s in realm %s failed %s', user_principal, realm, e)
             raise AuthenticationError(e)
 
         return
@@ -116,7 +114,7 @@ class KerberosUser(models.User, LoggingMixin):
 @LOGIN_MANAGER.user_loader
 @provide_session
 def load_user(userid, session=None):
-    if not userid or userid == "None":
+    if not userid or userid == 'None':
         return None
 
     user = session.query(models.User).filter(models.User.id == int(userid)).first()
@@ -127,27 +125,32 @@ def load_user(userid, session=None):
 def login(self, request, session=None):
     if current_user.is_authenticated:
         flash("You are already logged in")
-        return redirect(url_for("index"))
+        return redirect(url_for('index'))
 
     username = None
     password = None
 
     form = LoginForm(request.form)
 
-    if request.method == "POST" and form.validate():
+    if request.method == 'POST' and form.validate():
         username = request.form.get("username")
         password = request.form.get("password")
 
     if not username or not password:
-        return self.render("airflow/login.html", title="Airflow - Login", form=form)
+        return self.render('airflow/login.html',
+                           title="Airflow - Login",
+                           form=form)
 
     try:
         KerberosUser.authenticate(username, password)
 
-        user = session.query(models.User).filter(models.User.username == username).first()
+        user = session.query(models.User).filter(
+            models.User.username == username).first()
 
         if not user:
-            user = models.User(username=username, is_superuser=False)
+            user = models.User(
+                username=username,
+                is_superuser=False)
 
         session.merge(user)
         session.commit()
@@ -157,9 +160,11 @@ def login(self, request, session=None):
         return redirect(request.args.get("next") or url_for("admin.index"))
     except AuthenticationError:
         flash("Incorrect login details")
-        return self.render("airflow/login.html", title="Airflow - Login", form=form)
+        return self.render('airflow/login.html',
+                           title="Airflow - Login",
+                           form=form)
 
 
 class LoginForm(Form):
-    username = StringField("Username", [InputRequired()])
-    password = PasswordField("Password", [InputRequired()])
+    username = StringField('Username', [InputRequired()])
+    password = PasswordField('Password', [InputRequired()])

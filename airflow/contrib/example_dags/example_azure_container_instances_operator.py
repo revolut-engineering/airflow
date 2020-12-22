@@ -22,33 +22,35 @@ This is an example dag for using the AzureContainerInstancesOperator.
 from datetime import datetime, timedelta
 
 from airflow import DAG
-from airflow.contrib.operators.azure_container_instances_operator import (
-    AzureContainerInstancesOperator,
-)
+from airflow.contrib.operators.azure_container_instances_operator import AzureContainerInstancesOperator
 
 default_args = {
-    "owner": "Airflow",
-    "depends_on_past": False,
-    "start_date": datetime(2018, 11, 1),
-    "email": ["airflow@example.com"],
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 1,
-    "retry_delay": timedelta(minutes=5),
+    'owner': 'Airflow',
+    'depends_on_past': False,
+    'start_date': datetime(2018, 11, 1),
+    'email': ['airflow@example.com'],
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5),
 }
 
-with DAG(dag_id="aci_example", default_args=default_args, schedule_interval=timedelta(1)) as dag:
+with DAG(
+    dag_id='aci_example',
+    default_args=default_args,
+    schedule_interval=timedelta(1)
+) as dag:
 
     t1 = AzureContainerInstancesOperator(
-        ci_conn_id="azure_container_instances_default",
+        ci_conn_id='azure_container_instances_default',
         registry_conn_id=None,
-        resource_group="resource-group",
-        name="aci-test-{{ ds }}",
-        image="hello-world",
-        region="WestUS2",
+        resource_group='resource-group',
+        name='aci-test-{{ ds }}',
+        image='hello-world',
+        region='WestUS2',
         environment_variables={},
         volumes=[],
         memory_in_gb=4.0,
         cpu=1.0,
-        task_id="start_container",
+        task_id='start_container'
     )

@@ -35,7 +35,6 @@ log = logging.getLogger(__name__)
 
 class ApiAuth:  # pylint: disable=too-few-public-methods
     """Class to keep module of Authentication API  """
-
     def __init__(self):
         self.api_auth = None
 
@@ -46,7 +45,7 @@ API_AUTH = ApiAuth()
 def load_auth():
     """Loads authentication backend"""
 
-    auth_backend = "airflow.api.auth.backend.default"
+    auth_backend = 'airflow.api.auth.backend.default'
     try:
         auth_backend = conf.get("api", "auth_backend")
     except AirflowConfigException:
@@ -58,20 +57,21 @@ def load_auth():
         if api_auth is not API_AUTH.api_auth:
             # Only warn about this if the setting has changed
 
-            if hasattr(api_auth, "client_auth"):
+            if hasattr(api_auth, 'client_auth'):
                 warnings.warn(
-                    "Auth backend %s should provide a CLIENT_AUTH (instead of client_auth)"
-                    % auth_backend,
-                    DeprecationWarning,
-                )
+                    'Auth backend %s should provide a CLIENT_AUTH (instead of client_auth)' % auth_backend,
+                    DeprecationWarning)
                 api_auth.CLIENT_AUTH = api_auth.client_auth
             else:
-                api_auth.client_auth = deprecated("use CLIENT_AUTH", api_auth.CLIENT_AUTH)
+                api_auth.client_auth = deprecated('use CLIENT_AUTH', api_auth.CLIENT_AUTH)
             API_AUTH.api_auth = api_auth
     except ImportError as err:
-        log.critical("Cannot import %s for API authentication due to: %s", auth_backend, err)
+        log.critical(
+            "Cannot import %s for API authentication due to: %s",
+            auth_backend, err
+        )
         raise AirflowException(err)
 
 
 api_auth = lazy_object_proxy.Proxy(lambda: API_AUTH.api_auth)
-deprecated("api_auth", "Use airflow.api.API_AUTH.api_auth instead")
+deprecated('api_auth', 'Use airflow.api.API_AUTH.api_auth instead')

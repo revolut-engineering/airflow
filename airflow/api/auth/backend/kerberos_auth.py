@@ -51,7 +51,6 @@ from functools import wraps
 from socket import getfqdn
 
 from flask import Response
-
 # noinspection PyProtectedMember
 from flask import _request_ctx_stack as stack  # type: ignore
 from flask import make_response
@@ -69,12 +68,11 @@ log = logging.getLogger(__name__)
 
 install_aliases()
 # pylint: disable=c-extension-no-member
-CLIENT_AUTH = HTTPKerberosAuth(service="airflow")
+CLIENT_AUTH = HTTPKerberosAuth(service='airflow')
 
 
 class KerberosService:  # pylint: disable=too-few-public-methods
     """Class to keep information about the Kerberos Service initialized """
-
     def __init__(self):
         self.service_name = None
 
@@ -86,17 +84,17 @@ _KERBEROS_SERVICE = KerberosService()
 def init_app(app):
     """Initializes application with kerberos"""
 
-    hostname = app.config.get("SERVER_NAME")
+    hostname = app.config.get('SERVER_NAME')
     if not hostname:
         hostname = getfqdn()
     log.info("Kerberos: hostname %s", hostname)
 
-    service = "airflow"
+    service = 'airflow'
 
     _KERBEROS_SERVICE.service_name = "{}@{}".format(service, hostname)
 
-    if "KRB5_KTNAME" not in os.environ:
-        os.environ["KRB5_KTNAME"] = conf.get("kerberos", "keytab")
+    if 'KRB5_KTNAME' not in os.environ:
+        os.environ['KRB5_KTNAME'] = conf.get('kerberos', 'keytab')
 
     try:
         log.info("Kerberos init: %s %s", service, hostname)
@@ -143,26 +141,23 @@ def _gssapi_authenticate(token):
 
 def requires_authentication(function):
     """Decorator for functions that require authentication with Kerberos"""
-
     @wraps(function)
     def decorated(*args, **kwargs):
         header = request.headers.get("Authorization")
         if header:
             ctx = stack.top
-            token = "".join(header.split()[1:])
+            token = ''.join(header.split()[1:])
             return_code = _gssapi_authenticate(token)
             if return_code == kerberos.AUTH_GSS_COMPLETE:
                 g.user = ctx.kerberos_user
                 response = function(*args, **kwargs)
                 response = make_response(response)
                 if ctx.kerberos_token is not None:
-                    response.headers["WWW-Authenticate"] = " ".join(
-                        ["negotiate", ctx.kerberos_token]
-                    )
+                    response.headers['WWW-Authenticate'] = ' '.join(['negotiate',
+                                                                     ctx.kerberos_token])
 
                 return response
             if return_code != kerberos.AUTH_GSS_CONTINUE:
                 return _forbidden()
         return _unauthorized()
-
     return decorated

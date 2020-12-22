@@ -34,7 +34,11 @@ class AwsGlueCatalogHook(AwsHook):
     :type region_name: str
     """
 
-    def __init__(self, aws_conn_id="aws_default", region_name=None, *args, **kwargs):
+    def __init__(self,
+                 aws_conn_id='aws_default',
+                 region_name=None,
+                 *args,
+                 **kwargs):
         self.region_name = region_name
         self.conn = None
         super(AwsGlueCatalogHook, self).__init__(aws_conn_id=aws_conn_id, *args, **kwargs)
@@ -43,12 +47,15 @@ class AwsGlueCatalogHook(AwsHook):
         """
         Returns glue connection object.
         """
-        self.conn = self.get_client_type("glue", self.region_name)
+        self.conn = self.get_client_type('glue', self.region_name)
         return self.conn
 
-    def get_partitions(
-        self, database_name, table_name, expression="", page_size=None, max_items=None
-    ):
+    def get_partitions(self,
+                       database_name,
+                       table_name,
+                       expression='',
+                       page_size=None,
+                       max_items=None):
         """
         Retrieves the partition values for a table.
 
@@ -69,22 +76,22 @@ class AwsGlueCatalogHook(AwsHook):
             ``{('2018-01-01','1'), ('2018-01-01','2')}``
         """
         config = {
-            "PageSize": page_size,
-            "MaxItems": max_items,
+            'PageSize': page_size,
+            'MaxItems': max_items,
         }
 
-        paginator = self.get_conn().get_paginator("get_partitions")
+        paginator = self.get_conn().get_paginator('get_partitions')
         response = paginator.paginate(
             DatabaseName=database_name,
             TableName=table_name,
             Expression=expression,
-            PaginationConfig=config,
+            PaginationConfig=config
         )
 
         partitions = set()
         for page in response:
-            for partition in page["Partitions"]:
-                partitions.add(tuple(partition["Values"]))
+            for partition in page['Partitions']:
+                partitions.add(tuple(partition['Values']))
 
         return partitions
 
@@ -127,7 +134,7 @@ class AwsGlueCatalogHook(AwsHook):
 
         result = self.get_conn().get_table(DatabaseName=database_name, Name=table_name)
 
-        return result["Table"]
+        return result['Table']
 
     def get_table_location(self, database_name, table_name):
         """
@@ -142,4 +149,4 @@ class AwsGlueCatalogHook(AwsHook):
 
         table = self.get_table(database_name, table_name)
 
-        return table["StorageDescriptor"]["Location"]
+        return table['StorageDescriptor']['Location']

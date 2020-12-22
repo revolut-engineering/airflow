@@ -29,11 +29,9 @@ from flask import url_for, redirect, make_response
 from flask_bcrypt import generate_password_hash, check_password_hash
 
 import flask_login
-
 # noinspection PyUnresolvedReferences
 # pylint: disable=unused-import
 from flask_login import login_required, current_user, logout_user  # noqa: F401
-
 # pylint: enable=unused-import
 
 from wtforms import Form, PasswordField, StringField
@@ -46,7 +44,7 @@ from airflow import models
 from airflow.utils.db import provide_session, create_session
 
 LOGIN_MANAGER = flask_login.LoginManager()
-LOGIN_MANAGER.login_view = "airflow.login"  # Calls login() below
+LOGIN_MANAGER.login_view = 'airflow.login'  # Calls login() below
 LOGIN_MANAGER.login_message = None
 
 PY3 = version_info[0] == 3
@@ -64,8 +62,7 @@ class AuthenticationError(Exception):
 # noinspection PyUnresolvedReferences
 class PasswordUser(models.User):
     """Stores user with password"""
-
-    _password = Column("password", String(255))
+    _password = Column('password', String(255))
 
     def __init__(self, user):
         self.user = user
@@ -80,7 +77,7 @@ class PasswordUser(models.User):
         """Sets password for the user"""
         self._password = generate_password_hash(plaintext, 12)
         if PY3:
-            self._password = str(self._password, "utf-8")
+            self._password = str(self._password, 'utf-8')
 
     def authenticate(self, plaintext):
         """Authenticates user"""
@@ -110,12 +107,11 @@ class PasswordUser(models.User):
     def data_profiling(self):
         """Provides access to data profiling tools"""
         return True
-
     # pylint: enable=no-self-use
 
     def is_superuser(self):
         """Returns True if user is superuser"""
-        return hasattr(self, "user") and self.user.is_superuser()
+        return hasattr(self, 'user') and self.user.is_superuser()
 
 
 # noinspection PyUnresolvedReferences
@@ -124,7 +120,7 @@ class PasswordUser(models.User):
 def load_user(userid, session=None):
     """Loads user from the database"""
     log.debug("Loading user %s", userid)
-    if not userid or userid == "None":
+    if not userid or userid == 'None':
         return None
 
     user = session.query(models.User).filter(models.User.id == int(userid)).first()
@@ -146,7 +142,8 @@ def authenticate(session, username, password):
     if not username or not password:
         raise AuthenticationError()
 
-    user = session.query(PasswordUser).filter(PasswordUser.username == username).first()
+    user = session.query(PasswordUser).filter(
+        PasswordUser.username == username).first()
 
     if not user:
         raise AuthenticationError()
@@ -163,14 +160,14 @@ def login(self, request, session=None):
     """Logs the user in"""
     if current_user.is_authenticated:
         flash("You are already logged in")
-        return redirect(url_for("admin.index"))
+        return redirect(url_for('admin.index'))
 
     username = None
     password = None
 
     form = LoginForm(request.form)
 
-    if request.method == "POST" and form.validate():
+    if request.method == 'POST' and form.validate():
         username = request.form.get("username")
         password = request.form.get("password")
 
@@ -181,17 +178,16 @@ def login(self, request, session=None):
         return redirect(request.args.get("next") or url_for("admin.index"))
     except AuthenticationError:
         flash("Incorrect login details")
-        return self.render("airflow/login.html", title="Airflow - Login", form=form)
+        return self.render('airflow/login.html',
+                           title="Airflow - Login",
+                           form=form)
 
 
 # pylint: disable=too-few-public-methods
 class LoginForm(Form):
     """Form for the user"""
-
-    username = StringField("Username", [InputRequired()])
-    password = PasswordField("Password", [InputRequired()])
-
-
+    username = StringField('Username', [InputRequired()])
+    password = PasswordField('Password', [InputRequired()])
 # pylint: enable=too-few-public-methods
 
 
@@ -213,14 +209,13 @@ def init_app(_):
 
 def requires_authentication(function):
     """Decorator for functions that require authentication"""
-
     @wraps(function)
     def decorated(*args, **kwargs):
         from flask import request
 
         header = request.headers.get("Authorization")
         if header:
-            userpass = "".join(header.split()[1:])
+            userpass = ''.join(header.split()[1:])
             username, password = base64.b64decode(userpass).decode("utf-8").split(":", 1)
 
             with create_session() as session:
@@ -235,5 +230,4 @@ def requires_authentication(function):
                     return _forbidden()
 
         return _unauthorized()
-
     return decorated

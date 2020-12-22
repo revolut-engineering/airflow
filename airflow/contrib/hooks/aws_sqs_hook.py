@@ -32,7 +32,7 @@ class SQSHook(AwsHook):
     """
 
     def get_conn(self):
-        return self.get_client_type("sqs")
+        return self.get_client_type('sqs')
 
     def create_queue(self, queue_name, attributes=None):
         """
@@ -68,9 +68,7 @@ class SQSHook(AwsHook):
             For details of the returned value see :py:meth:`botocore.client.SQS.send_message`
         :rtype: dict
         """
-        return self.get_conn().send_message(
-            QueueUrl=queue_url,
-            MessageBody=message_body,
-            DelaySeconds=delay_seconds,
-            MessageAttributes=message_attributes or {},
-        )
+        return self.get_conn().send_message(QueueUrl=queue_url,
+                                            MessageBody=message_body,
+                                            DelaySeconds=delay_seconds,
+                                            MessageAttributes=message_attributes or {})

@@ -38,16 +38,18 @@ from airflow.operators.python_operator import BranchPythonOperator, PythonOperat
 from airflow.utils.dates import days_ago
 
 default_args = {
-    "owner": "Airflow",
-    "depends_on_past": False,
-    "start_date": days_ago(2),
-    "email": ["airflow@example.com"],
-    "email_on_failure": False,
-    "email_on_retry": False,
+    'owner': 'Airflow',
+    'depends_on_past': False,
+    'start_date': days_ago(2),
+    'email': ['airflow@example.com'],
+    'email_on_failure': False,
+    'email_on_retry': False
 }
 
 with DAG(
-    dag_id="example_qubole_operator", default_args=default_args, schedule_interval=None
+    dag_id='example_qubole_operator',
+    default_args=default_args,
+    schedule_interval=None
 ) as dag:
 
     def compare_result(**kwargs):
@@ -59,129 +61,140 @@ with DAG(
         :return: True if the files are the same, False otherwise.
         :rtype: bool
         """
-        ti = kwargs["ti"]
+        ti = kwargs['ti']
         qubole_result_1 = t1.get_results(ti)
         qubole_result_2 = t2.get_results(ti)
         return filecmp.cmp(qubole_result_1, qubole_result_2)
 
     t1 = QuboleOperator(
-        task_id="hive_show_table",
-        command_type="hivecmd",
-        query="show tables",
-        cluster_label="{{ params.cluster_label }}",
+        task_id='hive_show_table',
+        command_type='hivecmd',
+        query='show tables',
+        cluster_label='{{ params.cluster_label }}',
         fetch_logs=True,
         # If `fetch_logs`=true, will fetch qubole command logs and concatenate
         # them into corresponding airflow task logs
-        tags="airflow_example_run",
+        tags='airflow_example_run',
         # To attach tags to qubole command, auto attach 3 tags - dag_id, task_id, run_id
-        qubole_conn_id="qubole_default",
+        qubole_conn_id='qubole_default',
         # Connection id to submit commands inside QDS, if not set "qubole_default" is used
         params={
-            "cluster_label": "default",
-        },
+            'cluster_label': 'default',
+        }
     )
 
     t2 = QuboleOperator(
-        task_id="hive_s3_location",
+        task_id='hive_s3_location',
         command_type="hivecmd",
         script_location="s3n://public-qubole/qbol-library/scripts/show_table.hql",
         notify=True,
-        tags=["tag1", "tag2"],
+        tags=['tag1', 'tag2'],
         # If the script at s3 location has any qubole specific macros to be replaced
         # macros='[{"date": "{{ ds }}"}, {"name" : "abc"}]',
-        trigger_rule="all_done",
+        trigger_rule="all_done"
     )
 
     t3 = PythonOperator(
-        task_id="compare_result",
+        task_id='compare_result',
         provide_context=True,
         python_callable=compare_result,
-        trigger_rule="all_done",
+        trigger_rule="all_done"
     )
 
     t3 << [t1, t2]
 
-    options = ["hadoop_jar_cmd", "presto_cmd", "db_query", "spark_cmd"]
+    options = ['hadoop_jar_cmd', 'presto_cmd', 'db_query', 'spark_cmd']
 
     branching = BranchPythonOperator(
-        task_id="branching", python_callable=lambda: random.choice(options)
+        task_id='branching',
+        python_callable=lambda: random.choice(options)
     )
 
     branching << t3
 
-    join = DummyOperator(task_id="join", trigger_rule="one_success")
+    join = DummyOperator(
+        task_id='join',
+        trigger_rule='one_success'
+    )
 
     t4 = QuboleOperator(
-        task_id="hadoop_jar_cmd",
-        command_type="hadoopcmd",
-        sub_command="jar s3://paid-qubole/HadoopAPIExamples/"
-        "jars/hadoop-0.20.1-dev-streaming.jar "
-        "-mapper wc "
-        "-numReduceTasks 0 -input s3://paid-qubole/HadoopAPITests/"
-        "data/3.tsv -output "
-        "s3://paid-qubole/HadoopAPITests/data/3_wc",
-        cluster_label="{{ params.cluster_label }}",
+        task_id='hadoop_jar_cmd',
+        command_type='hadoopcmd',
+        sub_command='jar s3://paid-qubole/HadoopAPIExamples/'
+                    'jars/hadoop-0.20.1-dev-streaming.jar '
+                    '-mapper wc '
+                    '-numReduceTasks 0 -input s3://paid-qubole/HadoopAPITests/'
+                    'data/3.tsv -output '
+                    's3://paid-qubole/HadoopAPITests/data/3_wc',
+        cluster_label='{{ params.cluster_label }}',
         fetch_logs=True,
         params={
-            "cluster_label": "default",
-        },
+            'cluster_label': 'default',
+        }
     )
 
     t5 = QuboleOperator(
-        task_id="pig_cmd",
+        task_id='pig_cmd',
         command_type="pigcmd",
         script_location="s3://public-qubole/qbol-library/scripts/script1-hadoop-s3-small.pig",
         parameters="key1=value1 key2=value2",
-        trigger_rule="all_done",
+        trigger_rule="all_done"
     )
 
     t5 << t4 << branching
     t5 >> join
 
-    t6 = QuboleOperator(task_id="presto_cmd", command_type="prestocmd", query="show tables")
+    t6 = QuboleOperator(
+        task_id='presto_cmd',
+        command_type='prestocmd',
+        query='show tables'
+    )
 
     t7 = QuboleOperator(
-        task_id="shell_cmd",
+        task_id='shell_cmd',
         command_type="shellcmd",
         script_location="s3://public-qubole/qbol-library/scripts/shellx.sh",
         parameters="param1 param2",
-        trigger_rule="all_done",
+        trigger_rule="all_done"
     )
 
     t7 << t6 << branching
     t7 >> join
 
     t8 = QuboleOperator(
-        task_id="db_query", command_type="dbtapquerycmd", query="show tables", db_tap_id=2064
+        task_id='db_query',
+        command_type='dbtapquerycmd',
+        query='show tables',
+        db_tap_id=2064
     )
 
     t9 = QuboleOperator(
-        task_id="db_export",
-        command_type="dbexportcmd",
+        task_id='db_export',
+        command_type='dbexportcmd',
         mode=1,
-        hive_table="default_qubole_airline_origin_destination",
-        db_table="exported_airline_origin_destination",
-        partition_spec="dt=20110104-02",
+        hive_table='default_qubole_airline_origin_destination',
+        db_table='exported_airline_origin_destination',
+        partition_spec='dt=20110104-02',
         dbtap_id=2064,
-        trigger_rule="all_done",
+        trigger_rule="all_done"
     )
 
     t9 << t8 << branching
     t9 >> join
 
     t10 = QuboleOperator(
-        task_id="db_import",
-        command_type="dbimportcmd",
+        task_id='db_import',
+        command_type='dbimportcmd',
         mode=1,
-        hive_table="default_qubole_airline_origin_destination",
-        db_table="exported_airline_origin_destination",
-        where_clause="id < 10",
+        hive_table='default_qubole_airline_origin_destination',
+        db_table='exported_airline_origin_destination',
+        where_clause='id < 10',
         parallelism=2,
         dbtap_id=2064,
-        trigger_rule="all_done",
+        trigger_rule="all_done"
     )
 
-    prog = """
+    prog = '''
     import scala.math.random
 
     import org.apache.spark._
@@ -202,15 +215,15 @@ with DAG(
         spark.stop()
       }
     }
-    """
+    '''
 
     t11 = QuboleOperator(
-        task_id="spark_cmd",
+        task_id='spark_cmd',
         command_type="sparkcmd",
         program=prog,
-        language="scala",
-        arguments="--class SparkPi",
-        tags="airflow_example_run",
+        language='scala',
+        arguments='--class SparkPi',
+        tags='airflow_example_run'
     )
 
     t11 << t10 << branching

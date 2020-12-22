@@ -40,7 +40,12 @@ log = logging.getLogger(__name__)
 
 
 class SalesforceHook(BaseHook):
-    def __init__(self, conn_id, *args, **kwargs):
+    def __init__(
+            self,
+            conn_id,
+            *args,
+            **kwargs
+    ):
         """
         Create new connection to Salesforce
         and allows you to pull data out of SFDC and save it to a file.
@@ -73,16 +78,16 @@ class SalesforceHook(BaseHook):
 
         If we have already signed it, this will just return the original object
         """
-        if hasattr(self, "sf"):
+        if hasattr(self, 'sf'):
             return self.sf
 
         # connect to Salesforce
         sf = Salesforce(
             username=self.connection.login,
             password=self.connection.password,
-            security_token=self.extras["security_token"],
+            security_token=self.extras['security_token'],
             instance_url=self.connection.host,
-            sandbox=self.extras.get("sandbox", False),
+            sandbox=self.extras.get('sandbox', False)
         )
         self.sf = sf
         return sf
@@ -99,7 +104,8 @@ class SalesforceHook(BaseHook):
         query = self.sf.query_all(query)
 
         self.log.info(
-            "Received results: Total size: %s; Done: %s", query["totalSize"], query["done"]
+            "Received results: Total size: %s; Done: %s",
+            query['totalSize'], query['done']
         )
 
         query = json.loads(json.dumps(query))
@@ -129,7 +135,7 @@ class SalesforceHook(BaseHook):
 
         desc = self.describe_object(obj)
 
-        return [f["name"] for f in desc["fields"]]
+        return [f['name'] for f in desc['fields']]
 
     @staticmethod
     def _build_field_list(fields):
@@ -149,7 +155,7 @@ class SalesforceHook(BaseHook):
         query = "SELECT {0} FROM {1}".format(field_string, obj)
         self.log.info(
             "Making query to Salesforce: %s",
-            query if len(query) < 30 else " ... ".join([query[:15], query[-15:]]),
+            query if len(query) < 30 else " ... ".join([query[:15], query[-15:]])
         )
         return self.make_query(query)
 
@@ -172,7 +178,9 @@ class SalesforceHook(BaseHook):
         try:
             col = pd.to_datetime(col)
         except ValueError:
-            log.warning("Could not convert field to timestamps: %s", col.name)
+            log.warning(
+                "Could not convert field to timestamps: %s", col.name
+            )
             return col
 
         # now convert the newly created datetimes into timestamps
@@ -197,7 +205,7 @@ class SalesforceHook(BaseHook):
         filename,
         fmt="csv",
         coerce_to_timestamp=False,
-        record_time_added=False,
+        record_time_added=False
     ):
         """
         Write query results to file.
@@ -244,7 +252,7 @@ class SalesforceHook(BaseHook):
                                     *Default: False*.
         """
         fmt = fmt.lower()
-        if fmt not in ["csv", "json", "ndjson"]:
+        if fmt not in ['csv', 'json', 'ndjson']:
             raise ValueError("Format value is not recognized: {0}".format(fmt))
 
         # this line right here will convert all integers to floats if there are
@@ -263,7 +271,7 @@ class SalesforceHook(BaseHook):
             # get the object name out of the query results
             # it's stored in the "attributes" dictionary
             # for each returned record
-            object_name = query_results[0]["attributes"]["type"]
+            object_name = query_results[0]['attributes']['type']
 
             self.log.info("Coercing timestamps for: %s", object_name)
 
@@ -273,9 +281,10 @@ class SalesforceHook(BaseHook):
             # are the ones that are either date or datetime types
             # strings are too general and we risk unintentional conversion
             possible_timestamp_cols = [
-                i["name"].lower()
-                for i in schema["fields"]
-                if i["type"] in ["date", "datetime"] and i["name"].lower() in df.columns
+                i['name'].lower()
+                for i in schema['fields']
+                if i['type'] in ["date", "datetime"] and
+                i['name'].lower() in df.columns
             ]
             df[possible_timestamp_cols] = df[possible_timestamp_cols].apply(
                 lambda x: self._to_timestamp(x)
@@ -300,8 +309,12 @@ class SalesforceHook(BaseHook):
             # we remove these newlines so that the output is a valid CSV format
             self.log.info("Cleaning data and writing to CSV")
             possible_strings = df.columns[df.dtypes == "object"]
-            df[possible_strings] = df[possible_strings].apply(lambda x: x.str.replace("\r\n", ""))
-            df[possible_strings] = df[possible_strings].apply(lambda x: x.str.replace("\n", ""))
+            df[possible_strings] = df[possible_strings].apply(
+                lambda x: x.str.replace("\r\n", "")
+            )
+            df[possible_strings] = df[possible_strings].apply(
+                lambda x: x.str.replace("\n", "")
+            )
 
             # write the dataframe
             df.to_csv(filename, index=False)

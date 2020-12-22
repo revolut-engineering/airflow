@@ -35,14 +35,15 @@ class BigtableHook(GoogleCloudBaseHook):
 
     _client = None
 
-    def __init__(self, gcp_conn_id="google_cloud_default", delegate_to=None):
+    def __init__(self,
+                 gcp_conn_id='google_cloud_default',
+                 delegate_to=None):
         super(BigtableHook, self).__init__(gcp_conn_id, delegate_to)
 
     def _get_client(self, project_id):
         if not self._client:
-            self._client = Client(
-                project=project_id, credentials=self._get_credentials(), admin=True
-            )
+            self._client = Client(project=project_id, credentials=self._get_credentials(),
+                                  admin=True)
         return self._client
 
     @GoogleCloudBaseHook.fallback_to_default_project_id
@@ -82,28 +83,23 @@ class BigtableHook(GoogleCloudBaseHook):
         if instance:
             instance.delete()
         else:
-            self.log.info(
-                "The instance '%s' does not exist in project '%s'. Exiting",
-                instance_id,
-                project_id,
-            )
+            self.log.info("The instance '%s' does not exist in project '%s'. Exiting", instance_id,
+                          project_id)
 
     @GoogleCloudBaseHook.fallback_to_default_project_id
-    def create_instance(
-        self,
-        instance_id,
-        main_cluster_id,
-        main_cluster_zone,
-        project_id=None,
-        replica_cluster_id=None,
-        replica_cluster_zone=None,
-        instance_display_name=None,
-        instance_type=enums.Instance.Type.TYPE_UNSPECIFIED,
-        instance_labels=None,
-        cluster_nodes=None,
-        cluster_storage_type=enums.StorageType.STORAGE_TYPE_UNSPECIFIED,
-        timeout=None,
-    ):
+    def create_instance(self,
+                        instance_id,
+                        main_cluster_id,
+                        main_cluster_zone,
+                        project_id=None,
+                        replica_cluster_id=None,
+                        replica_cluster_zone=None,
+                        instance_display_name=None,
+                        instance_type=enums.Instance.Type.TYPE_UNSPECIFIED,
+                        instance_labels=None,
+                        cluster_nodes=None,
+                        cluster_storage_type=enums.StorageType.STORAGE_TYPE_UNSPECIFIED,
+                        timeout=None):
         """
         Creates new instance.
 
@@ -152,21 +148,30 @@ class BigtableHook(GoogleCloudBaseHook):
 
         clusters = [
             instance.cluster(
-                main_cluster_id, main_cluster_zone, cluster_nodes, cluster_storage_type
+                main_cluster_id,
+                main_cluster_zone,
+                cluster_nodes,
+                cluster_storage_type
             )
         ]
         if replica_cluster_id and replica_cluster_zone:
-            clusters.append(
-                instance.cluster(
-                    replica_cluster_id, replica_cluster_zone, cluster_nodes, cluster_storage_type
-                )
-            )
-        operation = instance.create(clusters=clusters)
+            clusters.append(instance.cluster(
+                replica_cluster_id,
+                replica_cluster_zone,
+                cluster_nodes,
+                cluster_storage_type
+            ))
+        operation = instance.create(
+            clusters=clusters
+        )
         operation.result(timeout)
         return instance
 
     @staticmethod
-    def create_table(instance, table_id, initial_split_keys=None, column_families=None):
+    def create_table(instance,
+                     table_id,
+                     initial_split_keys=None,
+                     column_families=None):
         """
         Creates the specified Cloud Bigtable table.
         Raises ``google.api_core.exceptions.AlreadyExists`` if the table exists.
@@ -205,9 +210,7 @@ class BigtableHook(GoogleCloudBaseHook):
             BigTable exists. If set to None or missing,
             the default project_id from the GCP connection is used.
         """
-        table = self.get_instance(instance_id=instance_id, project_id=project_id).table(
-            table_id=table_id
-        )
+        table = self.get_instance(instance_id=instance_id, project_id=project_id).table(table_id=table_id)
         table.delete()
 
     @staticmethod

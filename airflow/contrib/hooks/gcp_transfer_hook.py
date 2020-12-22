@@ -49,41 +49,41 @@ class GcpTransferOperationStatus:
 ACCESS_KEY_ID = "accessKeyId"
 ALREADY_EXISTING_IN_SINK = "overwriteObjectsAlreadyExistingInSink"
 AWS_ACCESS_KEY = "awsAccessKey"
-AWS_S3_DATA_SOURCE = "awsS3DataSource"
-BODY = "body"
-BUCKET_NAME = "bucketName"
-DAY = "day"
+AWS_S3_DATA_SOURCE = 'awsS3DataSource'
+BODY = 'body'
+BUCKET_NAME = 'bucketName'
+DAY = 'day'
 DESCRIPTION = "description"
-FILTER = "filter"
-FILTER_JOB_NAMES = "job_names"
-FILTER_PROJECT_ID = "project_id"
-GCS_DATA_SINK = "gcsDataSink"
-GCS_DATA_SOURCE = "gcsDataSource"
+FILTER = 'filter'
+FILTER_JOB_NAMES = 'job_names'
+FILTER_PROJECT_ID = 'project_id'
+GCS_DATA_SINK = 'gcsDataSink'
+GCS_DATA_SOURCE = 'gcsDataSource'
 HOURS = "hours"
-HTTP_DATA_SOURCE = "httpDataSource"
-LIST_URL = "list_url"
-METADATA = "metadata"
+HTTP_DATA_SOURCE = 'httpDataSource'
+LIST_URL = 'list_url'
+METADATA = 'metadata'
 MINUTES = "minutes"
-MONTH = "month"
-NAME = "name"
-OBJECT_CONDITIONS = "object_conditions"
-OPERATIONS = "operations"
-PROJECT_ID = "projectId"
-SCHEDULE = "schedule"
-SCHEDULE_END_DATE = "scheduleEndDate"
-SCHEDULE_START_DATE = "scheduleStartDate"
+MONTH = 'month'
+NAME = 'name'
+OBJECT_CONDITIONS = 'object_conditions'
+OPERATIONS = 'operations'
+PROJECT_ID = 'projectId'
+SCHEDULE = 'schedule'
+SCHEDULE_END_DATE = 'scheduleEndDate'
+SCHEDULE_START_DATE = 'scheduleStartDate'
 SECONDS = "seconds"
 SECRET_ACCESS_KEY = "secretAccessKey"
-START_TIME_OF_DAY = "startTimeOfDay"
+START_TIME_OF_DAY = 'startTimeOfDay'
 STATUS = "status"
-STATUS1 = "status"
-TRANSFER_JOB = "transfer_job"
-TRANSFER_JOB_FIELD_MASK = "update_transfer_job_field_mask"
-TRANSFER_JOBS = "transferJobs"
-TRANSFER_OPERATIONS = "transferOperations"
-TRANSFER_OPTIONS = "transfer_options"
-TRANSFER_SPEC = "transferSpec"
-YEAR = "year"
+STATUS1 = 'status'
+TRANSFER_JOB = 'transfer_job'
+TRANSFER_JOB_FIELD_MASK = 'update_transfer_job_field_mask'
+TRANSFER_JOBS = 'transferJobs'
+TRANSFER_OPERATIONS = 'transferOperations'
+TRANSFER_OPTIONS = 'transfer_options'
+TRANSFER_SPEC = 'transferSpec'
+YEAR = 'year'
 
 NEGATIVE_STATUSES = {GcpTransferOperationStatus.FAILED, GcpTransferOperationStatus.ABORTED}
 
@@ -96,7 +96,7 @@ class GCPTransferServiceHook(GoogleCloudBaseHook):
 
     _conn = None
 
-    def __init__(self, api_version="v1", gcp_conn_id="google_cloud_default", delegate_to=None):
+    def __init__(self, api_version='v1', gcp_conn_id='google_cloud_default', delegate_to=None):
         super(GCPTransferServiceHook, self).__init__(gcp_conn_id, delegate_to)
         self.api_version = api_version
 
@@ -110,7 +110,7 @@ class GCPTransferServiceHook(GoogleCloudBaseHook):
         if not self._conn:
             http_authorized = self._authorize()
             self._conn = build(
-                "storagetransfer", self.api_version, http=http_authorized, cache_discovery=False
+                'storagetransfer', self.api_version, http=http_authorized, cache_discovery=False
             )
         return self._conn
 
@@ -128,9 +128,7 @@ class GCPTransferServiceHook(GoogleCloudBaseHook):
         :rtype: dict
         """
         body = self._inject_project_id(body, BODY, PROJECT_ID)
-        return (
-            self.get_conn().transferJobs().create(body=body).execute(num_retries=self.num_retries)
-        )
+        return self.get_conn().transferJobs().create(body=body).execute(num_retries=self.num_retries)
 
     @GoogleCloudBaseHook.fallback_to_default_project_id
     @GoogleCloudBaseHook.catch_http_exception
@@ -175,9 +173,7 @@ class GCPTransferServiceHook(GoogleCloudBaseHook):
             response = request.execute(num_retries=self.num_retries)
             jobs.extend(response[TRANSFER_JOBS])
 
-            request = conn.transferJobs().list_next(
-                previous_request=request, previous_response=response
-            )
+            request = conn.transferJobs().list_next(previous_request=request, previous_response=response)
 
         return jobs
 
@@ -243,9 +239,7 @@ class GCPTransferServiceHook(GoogleCloudBaseHook):
         :type operation_name: str
         :rtype: None
         """
-        self.get_conn().transferOperations().cancel(name=operation_name).execute(
-            num_retries=self.num_retries
-        )
+        self.get_conn().transferOperations().cancel(name=operation_name).execute(num_retries=self.num_retries)
 
     @GoogleCloudBaseHook.catch_http_exception
     def get_transfer_operation(self, operation_name):
@@ -289,9 +283,7 @@ class GCPTransferServiceHook(GoogleCloudBaseHook):
 
         operations = []
 
-        request = conn.transferOperations().list(
-            name=TRANSFER_OPERATIONS, filter=json.dumps(filter)
-        )
+        request = conn.transferOperations().list(name=TRANSFER_OPERATIONS, filter=json.dumps(filter))
 
         while request is not None:
             response = request.execute(num_retries=self.num_retries)
@@ -313,9 +305,7 @@ class GCPTransferServiceHook(GoogleCloudBaseHook):
         :type operation_name: str
         :rtype: None
         """
-        self.get_conn().transferOperations().pause(name=operation_name).execute(
-            num_retries=self.num_retries
-        )
+        self.get_conn().transferOperations().pause(name=operation_name).execute(num_retries=self.num_retries)
 
     @GoogleCloudBaseHook.catch_http_exception
     def resume_transfer_operation(self, operation_name):
@@ -326,14 +316,10 @@ class GCPTransferServiceHook(GoogleCloudBaseHook):
         :type operation_name: str
         :rtype: None
         """
-        self.get_conn().transferOperations().resume(name=operation_name).execute(
-            num_retries=self.num_retries
-        )
+        self.get_conn().transferOperations().resume(name=operation_name).execute(num_retries=self.num_retries)
 
     @GoogleCloudBaseHook.catch_http_exception
-    def wait_for_transfer_job(
-        self, job, expected_statuses=(GcpTransferOperationStatus.SUCCESS,), timeout=60
-    ):
+    def wait_for_transfer_job(self, job, expected_statuses=(GcpTransferOperationStatus.SUCCESS,), timeout=60):
         """
         Waits until the job reaches the expected state.
 
@@ -354,15 +340,11 @@ class GCPTransferServiceHook(GoogleCloudBaseHook):
                 filter={FILTER_PROJECT_ID: job[PROJECT_ID], FILTER_JOB_NAMES: [job[NAME]]}
             )
 
-            if GCPTransferServiceHook.operations_contain_expected_statuses(
-                operations, expected_statuses
-            ):
+            if GCPTransferServiceHook.operations_contain_expected_statuses(operations, expected_statuses):
                 return
             time.sleep(TIME_TO_SLEEP_IN_SECONDS)
             timeout -= TIME_TO_SLEEP_IN_SECONDS
-        raise AirflowException(
-            "Timeout. The operation could not be completed within the allotted time."
-        )
+        raise AirflowException("Timeout. The operation could not be completed within the allotted time.")
 
     def _inject_project_id(self, body, param_name, target_key):
         body = deepcopy(body)
@@ -370,9 +352,7 @@ class GCPTransferServiceHook(GoogleCloudBaseHook):
         if not body.get(target_key):
             raise AirflowException(
                 "The project id must be passed either as `{}` key in `{}` parameter or as project_id "
-                "extra in GCP connection definition. Both are not set!".format(
-                    target_key, param_name
-                )
+                "extra in GCP connection definition. Both are not set!".format(target_key, param_name)
             )
         return body
 
@@ -397,9 +377,7 @@ class GCPTransferServiceHook(GoogleCloudBaseHook):
         :rtype: bool
         """
         expected_statuses = (
-            {expected_statuses}
-            if isinstance(expected_statuses, six.string_types)
-            else set(expected_statuses)
+            {expected_statuses} if isinstance(expected_statuses, six.string_types) else set(expected_statuses)
         )
         if len(operations) == 0:
             return False
@@ -411,7 +389,7 @@ class GCPTransferServiceHook(GoogleCloudBaseHook):
 
         if len(NEGATIVE_STATUSES - current_statuses) != len(NEGATIVE_STATUSES):
             raise AirflowException(
-                "An unexpected operation status was encountered. Expected: {}".format(
+                'An unexpected operation status was encountered. Expected: {}'.format(
                     ", ".join(expected_statuses)
                 )
             )

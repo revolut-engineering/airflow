@@ -37,34 +37,34 @@ import os as _os
 #
 # ------------------------------------------------------------------------
 _hooks = {
-    "docker_hook": ["DockerHook"],
-    "ftp_hook": ["FTPHook"],
-    "ftps_hook": ["FTPSHook"],
-    "vertica_hook": ["VerticaHook"],
-    "ssh_hook": ["SSHHook"],
-    "winrm_hook": ["WinRMHook"],
-    "sftp_hook": ["SFTPHook"],
-    "bigquery_hook": ["BigQueryHook"],
-    "qubole_hook": ["QuboleHook"],
-    "gcs_hook": ["GoogleCloudStorageHook"],
-    "datastore_hook": ["DatastoreHook"],
-    "gcp_cloudml_hook": ["CloudMLHook"],
-    "redshift_hook": ["RedshiftHook"],
-    "gcp_dataproc_hook": ["DataProcHook"],
-    "gcp_dataflow_hook": ["DataFlowHook"],
-    "spark_submit_operator": ["SparkSubmitOperator"],
-    "cloudant_hook": ["CloudantHook"],
-    "fs_hook": ["FSHook"],
-    "wasb_hook": ["WasbHook"],
-    "gcp_pubsub_hook": ["PubSubHook"],
-    "jenkins_hook": ["JenkinsHook"],
-    "aws_dynamodb_hook": ["AwsDynamoDBHook"],
-    "azure_data_lake_hook": ["AzureDataLakeHook"],
-    "azure_fileshare_hook": ["AzureFileShareHook"],
+    'docker_hook': ['DockerHook'],
+    'ftp_hook': ['FTPHook'],
+    'ftps_hook': ['FTPSHook'],
+    'vertica_hook': ['VerticaHook'],
+    'ssh_hook': ['SSHHook'],
+    'winrm_hook': ['WinRMHook'],
+    'sftp_hook': ['SFTPHook'],
+    'bigquery_hook': ['BigQueryHook'],
+    'qubole_hook': ['QuboleHook'],
+    'gcs_hook': ['GoogleCloudStorageHook'],
+    'datastore_hook': ['DatastoreHook'],
+    'gcp_cloudml_hook': ['CloudMLHook'],
+    'redshift_hook': ['RedshiftHook'],
+    'gcp_dataproc_hook': ['DataProcHook'],
+    'gcp_dataflow_hook': ['DataFlowHook'],
+    'spark_submit_operator': ['SparkSubmitOperator'],
+    'cloudant_hook': ['CloudantHook'],
+    'fs_hook': ['FSHook'],
+    'wasb_hook': ['WasbHook'],
+    'gcp_pubsub_hook': ['PubSubHook'],
+    'jenkins_hook': ['JenkinsHook'],
+    'aws_dynamodb_hook': ['AwsDynamoDBHook'],
+    'azure_data_lake_hook': ['AzureDataLakeHook'],
+    'azure_fileshare_hook': ['AzureFileShareHook'],
 }
 
 
-if not _os.environ.get("AIRFLOW_USE_NEW_IMPORTS", False):
+if not _os.environ.get('AIRFLOW_USE_NEW_IMPORTS', False):
     from airflow.utils.helpers import AirflowImporter
 
     airflow_importer = AirflowImporter(sys.modules[__name__], _hooks)

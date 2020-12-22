@@ -61,9 +61,7 @@ class CloudBuildHook(GoogleCloudBaseHook):
         """
         if not self._conn:
             http_authorized = self._authorize()
-            self._conn = build(
-                "cloudbuild", self.api_version, http=http_authorized, cache_discovery=False
-            )
+            self._conn = build("cloudbuild", self.api_version, http=http_authorized, cache_discovery=False)
         return self._conn
 
     @GoogleCloudBaseHook.fallback_to_default_project_id
@@ -120,9 +118,7 @@ class CloudBuildHook(GoogleCloudBaseHook):
         while True:
             operation_response = (
                 # pylint: disable=no-member
-                service.operations()
-                .get(name=operation_name)
-                .execute(num_retries=self.num_retries)
+                service.operations().get(name=operation_name).execute(num_retries=self.num_retries)
             )
             if operation_response.get("done"):
                 response = operation_response.get("response")

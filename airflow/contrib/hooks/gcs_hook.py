@@ -36,22 +36,25 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
 
     _conn = None
 
-    def __init__(self, google_cloud_storage_conn_id="google_cloud_default", delegate_to=None):
-        super(GoogleCloudStorageHook, self).__init__(google_cloud_storage_conn_id, delegate_to)
+    def __init__(self,
+                 google_cloud_storage_conn_id='google_cloud_default',
+                 delegate_to=None):
+        super(GoogleCloudStorageHook, self).__init__(google_cloud_storage_conn_id,
+                                                     delegate_to)
 
     def get_conn(self):
         """
         Returns a Google Cloud Storage service object.
         """
         if not self._conn:
-            self._conn = storage.Client(
-                credentials=self._get_credentials(), project=self.project_id
-            )
+            self._conn = storage.Client(credentials=self._get_credentials(),
+                                        project=self.project_id)
 
         return self._conn
 
     # pylint:disable=redefined-builtin
-    def copy(self, source_bucket, source_object, destination_bucket=None, destination_object=None):
+    def copy(self, source_bucket, source_object, destination_bucket=None,
+             destination_object=None):
         """
         Copies an object from a bucket to another, with renaming if requested.
 
@@ -71,33 +74,31 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
         """
         destination_bucket = destination_bucket or source_bucket
         destination_object = destination_object or source_object
-        if source_bucket == destination_bucket and source_object == destination_object:
+        if source_bucket == destination_bucket and \
+                source_object == destination_object:
 
             raise ValueError(
-                "Either source/destination bucket or source/destination object "
-                "must be different, not both the same: bucket=%s, object=%s"
-                % (source_bucket, source_object)
-            )
+                'Either source/destination bucket or source/destination object '
+                'must be different, not both the same: bucket=%s, object=%s' %
+                (source_bucket, source_object))
         if not source_bucket or not source_object:
-            raise ValueError("source_bucket and source_object cannot be empty.")
+            raise ValueError('source_bucket and source_object cannot be empty.')
 
         client = self.get_conn()
         source_bucket = client.bucket(source_bucket)
         source_object = source_bucket.blob(source_object)
         destination_bucket = client.bucket(destination_bucket)
         destination_object = source_bucket.copy_blob(
-            blob=source_object, destination_bucket=destination_bucket, new_name=destination_object
-        )
+            blob=source_object,
+            destination_bucket=destination_bucket,
+            new_name=destination_object)
 
-        self.log.info(
-            "Object %s in bucket %s copied to object %s in bucket %s",
-            source_object.name,
-            source_bucket.name,
-            destination_object.name,
-            destination_bucket.name,
-        )
+        self.log.info('Object %s in bucket %s copied to object %s in bucket %s',
+                      source_object.name, source_bucket.name,
+                      destination_object.name, destination_bucket.name)
 
-    def rewrite(self, source_bucket, source_object, destination_bucket, destination_object=None):
+    def rewrite(self, source_bucket, source_object, destination_bucket,
+                destination_object=None):
         """
         Has the same functionality as copy, except that will work on files
         over 5 TB, as well as when copying between locations and/or storage
@@ -115,14 +116,14 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
             Can be omitted; then the same name is used.
         """
         destination_object = destination_object or source_object
-        if source_bucket == destination_bucket and source_object == destination_object:
+        if (source_bucket == destination_bucket and
+                source_object == destination_object):
             raise ValueError(
-                "Either source/destination bucket or source/destination object "
-                "must be different, not both the same: bucket=%s, object=%s"
-                % (source_bucket, source_object)
-            )
+                'Either source/destination bucket or source/destination object '
+                'must be different, not both the same: bucket=%s, object=%s' %
+                (source_bucket, source_object))
         if not source_bucket or not source_object:
-            raise ValueError("source_bucket and source_object cannot be empty.")
+            raise ValueError('source_bucket and source_object cannot be empty.')
 
         client = self.get_conn()
         source_bucket = client.bucket(source_bucket)
@@ -130,24 +131,24 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
         destination_bucket = client.bucket(destination_bucket)
 
         token, bytes_rewritten, total_bytes = destination_bucket.blob(
-            blob_name=destination_object
-        ).rewrite(source=source_object)
+            blob_name=destination_object).rewrite(
+            source=source_object
+        )
 
-        self.log.info("Total Bytes: %s | Bytes Written: %s", total_bytes, bytes_rewritten)
+        self.log.info('Total Bytes: %s | Bytes Written: %s',
+                      total_bytes, bytes_rewritten)
 
         while token is not None:
             token, bytes_rewritten, total_bytes = destination_bucket.blob(
-                blob_name=destination_object
-            ).rewrite(source=source_object, token=token)
+                blob_name=destination_object).rewrite(
+                source=source_object, token=token
+            )
 
-            self.log.info("Total Bytes: %s | Bytes Written: %s", total_bytes, bytes_rewritten)
-        self.log.info(
-            "Object %s in bucket %s copied to object %s in bucket %s",
-            source_object.name,
-            source_bucket.name,
-            destination_object,
-            destination_bucket.name,
-        )
+            self.log.info('Total Bytes: %s | Bytes Written: %s',
+                          total_bytes, bytes_rewritten)
+        self.log.info('Object %s in bucket %s copied to object %s in bucket %s',
+                      source_object.name, source_bucket.name,
+                      destination_object, destination_bucket.name)
 
     # pylint:disable=redefined-builtin
     def download(self, bucket, object, filename=None):
@@ -172,22 +173,15 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
 
         if filename:
             blob.download_to_filename(filename)
-            self.log.info("File downloaded to %s", filename)
+            self.log.info('File downloaded to %s', filename)
             return filename
         else:
             return blob.download_as_string()
 
     # pylint:disable=redefined-builtin
-    def upload(
-        self,
-        bucket,
-        object,
-        filename,
-        mime_type="application/octet-stream",
-        gzip=False,
-        multipart=None,
-        num_retries=None,
-    ):
+    def upload(self, bucket, object, filename,
+               mime_type='application/octet-stream', gzip=False,
+               multipart=None, num_retries=None):
         """
         Uploads a local file to Google Cloud Storage.
 
@@ -204,35 +198,30 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
         """
 
         if multipart is not None:
-            warnings.warn(
-                "'multipart' parameter is deprecated."
-                " It is handled automatically by the Storage client",
-                DeprecationWarning,
-            )
+            warnings.warn("'multipart' parameter is deprecated."
+                          " It is handled automatically by the Storage client", DeprecationWarning)
 
         if num_retries is not None:
-            warnings.warn(
-                "'num_retries' parameter is deprecated."
-                " It is handled automatically by the Storage client",
-                DeprecationWarning,
-            )
+            warnings.warn("'num_retries' parameter is deprecated."
+                          " It is handled automatically by the Storage client", DeprecationWarning)
 
         if gzip:
-            filename_gz = filename + ".gz"
+            filename_gz = filename + '.gz'
 
-            with open(filename, "rb") as f_in:
-                with gz.open(filename_gz, "wb") as f_out:
+            with open(filename, 'rb') as f_in:
+                with gz.open(filename_gz, 'wb') as f_out:
                     shutil.copyfileobj(f_in, f_out)
                     filename = filename_gz
 
         client = self.get_conn()
         bucket = client.bucket(bucket)
         blob = bucket.blob(blob_name=object)
-        blob.upload_from_filename(filename=filename, content_type=mime_type)
+        blob.upload_from_filename(filename=filename,
+                                  content_type=mime_type)
 
         if gzip:
             os.remove(filename)
-        self.log.info("File %s uploaded to %s in %s bucket", filename, object, bucket)
+        self.log.info('File %s uploaded to %s in %s bucket', filename, object, bucket)
 
     # pylint:disable=redefined-builtin
     def exists(self, bucket, object):
@@ -268,7 +257,8 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
         blob = bucket.get_blob(blob_name=object)
 
         if blob is None:
-            raise ValueError("Object ({}) not found in Bucket ({})".format(object, bucket))
+            raise ValueError("Object ({}) not found in Bucket ({})".format(
+                object, bucket))
 
         blob_update_time = blob.updated
 
@@ -303,7 +293,7 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
         blob = bucket.blob(blob_name=object)
         blob.delete()
 
-        self.log.info("Blob %s deleted.", object)
+        self.log.info('Blob %s deleted.', object)
 
     def list(self, bucket, versions=None, maxResults=None, prefix=None, delimiter=None):
         """
@@ -333,7 +323,7 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
                 page_token=pageToken,
                 prefix=prefix,
                 delimiter=delimiter,
-                versions=versions,
+                versions=versions
             )
 
             blob_names = []
@@ -362,12 +352,14 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
         :type object: str
 
         """
-        self.log.info("Checking the file size of object: %s in bucket: %s", object, bucket)
+        self.log.info('Checking the file size of object: %s in bucket: %s',
+                      object,
+                      bucket)
         client = self.get_conn()
         bucket = client.bucket(bucket)
         blob = bucket.get_blob(blob_name=object)
         blob_size = blob.size
-        self.log.info("The file size of %s is %s bytes.", object, blob_size)
+        self.log.info('The file size of %s is %s bytes.', object, blob_size)
         return blob_size
 
     def get_crc32c(self, bucket, object):
@@ -380,14 +372,13 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
             storage bucket.
         :type object: str
         """
-        self.log.info(
-            "Retrieving the crc32c checksum of " "object: %s in bucket: %s", object, bucket
-        )
+        self.log.info('Retrieving the crc32c checksum of '
+                      'object: %s in bucket: %s', object, bucket)
         client = self.get_conn()
         bucket = client.bucket(bucket)
         blob = bucket.get_blob(blob_name=object)
         blob_crc32c = blob.crc32c
-        self.log.info("The crc32c checksum of %s is %s", object, blob_crc32c)
+        self.log.info('The crc32c checksum of %s is %s', object, blob_crc32c)
         return blob_crc32c
 
     def get_md5hash(self, bucket, object):
@@ -400,25 +391,25 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
             storage bucket.
         :type object: str
         """
-        self.log.info("Retrieving the MD5 hash of " "object: %s in bucket: %s", object, bucket)
+        self.log.info('Retrieving the MD5 hash of '
+                      'object: %s in bucket: %s', object, bucket)
         client = self.get_conn()
         bucket = client.bucket(bucket)
         blob = bucket.get_blob(blob_name=object)
         blob_md5hash = blob.md5_hash
-        self.log.info("The md5Hash of %s is %s", object, blob_md5hash)
+        self.log.info('The md5Hash of %s is %s', object, blob_md5hash)
         return blob_md5hash
 
     @GoogleCloudBaseHook.catch_http_exception
     @GoogleCloudBaseHook.fallback_to_default_project_id
-    def create_bucket(
-        self,
-        bucket_name,
-        resource=None,
-        storage_class="MULTI_REGIONAL",
-        location="US",
-        project_id=None,
-        labels=None,
-    ):
+    def create_bucket(self,
+                      bucket_name,
+                      resource=None,
+                      storage_class='MULTI_REGIONAL',
+                      location='US',
+                      project_id=None,
+                      labels=None
+                      ):
         """
         Creates a new bucket. Google Cloud Storage uses a flat namespace, so
         you can't create a bucket with a name that is already in use.
@@ -460,12 +451,8 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
         :return: If successful, it returns the ``id`` of the bucket.
         """
 
-        self.log.info(
-            "Creating Bucket: %s; Location: %s; Storage Class: %s",
-            bucket_name,
-            location,
-            storage_class,
-        )
+        self.log.info('Creating Bucket: %s; Location: %s; Storage Class: %s',
+                      bucket_name, location, storage_class)
 
         client = self.get_conn()
         bucket = client.bucket(bucket_name=bucket_name)
@@ -499,7 +486,7 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
             Required for Requester Pays buckets.
         :type user_project: str
         """
-        self.log.info("Creating a new ACL entry in bucket: %s", bucket)
+        self.log.info('Creating a new ACL entry in bucket: %s', bucket)
         client = self.get_conn()
         bucket = client.bucket(bucket_name=bucket)
         bucket.acl.reload()
@@ -508,11 +495,10 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
             bucket.acl.user_project = user_project
         bucket.acl.save()
 
-        self.log.info("A new ACL entry created in bucket: %s", bucket)
+        self.log.info('A new ACL entry created in bucket: %s', bucket)
 
-    def insert_object_acl(
-        self, bucket, object_name, entity, role, generation=None, user_project=None
-    ):
+    def insert_object_acl(self, bucket, object_name, entity, role, generation=None,
+                          user_project=None):
         """
         Creates a new ACL entry on the specified object.
         See: https://cloud.google.com/storage/docs/json_api/v1/objectAccessControls/insert
@@ -537,7 +523,8 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
         """
         if generation is not None:
             warnings.warn("'generation' parameter is no longer supported", DeprecationWarning)
-        self.log.info("Creating a new ACL entry for object: %s in bucket: %s", object_name, bucket)
+        self.log.info('Creating a new ACL entry for object: %s in bucket: %s',
+                      object_name, bucket)
         client = self.get_conn()
         bucket = client.bucket(bucket_name=bucket)
         blob = bucket.blob(object_name)
@@ -548,7 +535,8 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
             blob.acl.user_project = user_project
         blob.acl.save()
 
-        self.log.info("A new ACL entry created for object: %s in bucket: %s", object_name, bucket)
+        self.log.info('A new ACL entry created for object: %s in bucket: %s',
+                      object_name, bucket)
 
     def compose(self, bucket, source_objects, destination_object, num_retries=None):
         """
@@ -569,26 +557,24 @@ class GoogleCloudStorageHook(GoogleCloudBaseHook):
         :type destination_object: str
         """
         if num_retries is not None:
-            warnings.warn(
-                "'num_retries' parameter is Deprecated. Retries are " "now handled automatically",
-                DeprecationWarning,
-            )
+            warnings.warn("'num_retries' parameter is Deprecated. Retries are "
+                          "now handled automatically", DeprecationWarning)
 
         if not source_objects or not len(source_objects):
-            raise ValueError("source_objects cannot be empty.")
+            raise ValueError('source_objects cannot be empty.')
 
         if not bucket or not destination_object:
-            raise ValueError("bucket and destination_object cannot be empty.")
+            raise ValueError('bucket and destination_object cannot be empty.')
 
-        self.log.info(
-            "Composing %s to %s in the bucket %s", source_objects, destination_object, bucket
-        )
+        self.log.info("Composing %s to %s in the bucket %s",
+                      source_objects, destination_object, bucket)
         client = self.get_conn()
         bucket = client.bucket(bucket)
         destination_blob = bucket.blob(destination_object)
         destination_blob.compose(
-            sources=[bucket.blob(blob_name=source_object) for source_object in source_objects]
-        )
+            sources=[
+                bucket.blob(blob_name=source_object) for source_object in source_objects
+            ])
 
         self.log.info("Completed successfully.")
 
@@ -607,9 +593,9 @@ def _parse_gcs_url(gsurl):
 
     parsed_url = urlparse(gsurl)
     if not parsed_url.netloc:
-        raise AirflowException("Please provide a bucket name")
+        raise AirflowException('Please provide a bucket name')
     else:
         bucket = parsed_url.netloc
         # Remove leading '/' but NOT trailing one
-        blob = parsed_url.path.lstrip("/")
+        blob = parsed_url.path.lstrip('/')
         return bucket, blob

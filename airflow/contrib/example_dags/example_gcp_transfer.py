@@ -79,17 +79,17 @@ from airflow.contrib.sensors.gcp_transfer_sensor import GCPTransferServiceWaitFo
 from airflow.utils.dates import days_ago
 
 # [START howto_operator_gcp_transfer_common_variables]
-GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "example-project")
-GCP_DESCRIPTION = os.environ.get("GCP_DESCRIPTION", "description")
-GCP_TRANSFER_TARGET_BUCKET = os.environ.get("GCP_TRANSFER_TARGET_BUCKET")
-WAIT_FOR_OPERATION_POKE_INTERVAL = int(os.environ.get("WAIT_FOR_OPERATION_POKE_INTERVAL", 5))
+GCP_PROJECT_ID = os.environ.get('GCP_PROJECT_ID', 'example-project')
+GCP_DESCRIPTION = os.environ.get('GCP_DESCRIPTION', 'description')
+GCP_TRANSFER_TARGET_BUCKET = os.environ.get('GCP_TRANSFER_TARGET_BUCKET')
+WAIT_FOR_OPERATION_POKE_INTERVAL = int(os.environ.get('WAIT_FOR_OPERATION_POKE_INTERVAL', 5))
 
-GCP_TRANSFER_SOURCE_AWS_BUCKET = os.environ.get("GCP_TRANSFER_SOURCE_AWS_BUCKET")
+GCP_TRANSFER_SOURCE_AWS_BUCKET = os.environ.get('GCP_TRANSFER_SOURCE_AWS_BUCKET')
 GCP_TRANSFER_FIRST_TARGET_BUCKET = os.environ.get(
-    "GCP_TRANSFER_FIRST_TARGET_BUCKET", "gcp-transfer-first-target"
+    'GCP_TRANSFER_FIRST_TARGET_BUCKET', 'gcp-transfer-first-target'
 )
 GCP_TRANSFER_SECOND_TARGET_BUCKET = os.environ.get(
-    "GCP_TRANSFER_SECOND_TARGET_BUCKET", "gcp-transfer-second-target"
+    'GCP_TRANSFER_SECOND_TARGET_BUCKET', 'gcp-transfer-second-target'
 )
 # [END howto_operator_gcp_transfer_common_variables]
 
@@ -140,13 +140,11 @@ update_body = {
 list_filter_dict = {FILTER_PROJECT_ID: GCP_PROJECT_ID, FILTER_JOB_NAMES: []}
 
 # [START howto_operator_gcp_transfer_default_args]
-default_args = {"start_date": days_ago(1)}
+default_args = {'start_date': days_ago(1)}
 # [END howto_operator_gcp_transfer_default_args]
 
 with models.DAG(
-    "example_gcp_transfer",
-    default_args=default_args,
-    schedule_interval=None,  # Override to match your needs
+    'example_gcp_transfer', default_args=default_args, schedule_interval=None  # Override to match your needs
 ) as dag:
 
     # [START howto_operator_gcp_transfer_create_job]
@@ -184,24 +182,20 @@ with models.DAG(
         task_id="list_operations",
         filter={
             FILTER_PROJECT_ID: GCP_PROJECT_ID,
-            FILTER_JOB_NAMES: [
-                "{{task_instance.xcom_pull('create_transfer_job_from_aws')['name']}}"
-            ],
+            FILTER_JOB_NAMES: ["{{task_instance.xcom_pull('create_transfer_job_from_aws')['name']}}"],
         },
     )
     # [END howto_operator_gcp_transfer_list_operations]
 
     # [START howto_operator_gcp_transfer_get_operation]
     get_operation = GcpTransferServiceOperationGetOperator(
-        task_id="get_operation",
-        operation_name="{{task_instance.xcom_pull('list_operations')[0]['name']}}",
+        task_id="get_operation", operation_name="{{task_instance.xcom_pull('list_operations')[0]['name']}}"
     )
     # [END howto_operator_gcp_transfer_get_operation]
 
     # [START howto_operator_gcp_transfer_resume_operation]
     resume_operation = GcpTransferServiceOperationResumeOperator(
-        task_id="resume_operation",
-        operation_name="{{task_instance.xcom_pull('get_operation')['name']}}",
+        task_id="resume_operation", operation_name="{{task_instance.xcom_pull('get_operation')['name']}}"
     )
     # [END howto_operator_gcp_transfer_resume_operation]
 
@@ -217,9 +211,7 @@ with models.DAG(
 
     job_time = datetime.utcnow() + timedelta(minutes=2)
 
-    gcs_to_gcs_transfer_body["schedule"]["startTimeOfDay"] = (
-        datetime.utcnow() + timedelta(minutes=2)
-    ).time()
+    gcs_to_gcs_transfer_body['schedule']['startTimeOfDay'] = (datetime.utcnow() + timedelta(minutes=2)).time()
 
     create_transfer_job_from_gcp = GcpTransferServiceJobCreateOperator(
         task_id="create_transfer_job_from_gcp", body=gcs_to_gcs_transfer_body
@@ -255,4 +247,7 @@ with models.DAG(
         project_id=GCP_PROJECT_ID,
     )
 
-    create_transfer_job_from_aws >> wait_for_operation_to_start >> pause_operation >> list_operations >> get_operation >> resume_operation >> wait_for_operation_to_end >> create_transfer_job_from_gcp >> wait_for_second_operation_to_start >> cancel_operation >> delete_transfer_from_aws_job >> delete_transfer_from_gcp_job
+    create_transfer_job_from_aws >> wait_for_operation_to_start >> pause_operation >> \
+        list_operations >> get_operation >> resume_operation >> wait_for_operation_to_end >> \
+        create_transfer_job_from_gcp >> wait_for_second_operation_to_start >> cancel_operation >> \
+        delete_transfer_from_aws_job >> delete_transfer_from_gcp_job

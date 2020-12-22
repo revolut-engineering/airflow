@@ -28,26 +28,25 @@ from airflow.contrib.operators.gcp_translate_operator import CloudTranslateTextO
 from airflow.operators.bash_operator import BashOperator
 from airflow.utils.dates import days_ago
 
-default_args = {"start_date": days_ago(1)}
+default_args = {'start_date': days_ago(1)}
 
 with models.DAG(
-    "example_gcp_translate",
-    default_args=default_args,
-    schedule_interval=None,  # Override to match your needs
+    'example_gcp_translate', default_args=default_args, schedule_interval=None  # Override to match your needs
 ) as dag:
     # [START howto_operator_translate_text]
     product_set_create = CloudTranslateTextOperator(
-        task_id="translate",
-        values=["zażółć gęślą jaźń"],
-        target_language="en",
-        format_="text",
+        task_id='translate',
+        values=['zażółć gęślą jaźń'],
+        target_language='en',
+        format_='text',
         source_language=None,
-        model="base",
+        model='base',
     )
     # [END howto_operator_translate_text]
     # [START howto_operator_translate_access]
     translation_access = BashOperator(
-        task_id="access", bash_command="echo '{{ task_instance.xcom_pull(\"translate\")[0] }}'"
+        task_id='access',
+        bash_command="echo '{{ task_instance.xcom_pull(\"translate\")[0] }}'"
     )
     product_set_create >> translation_access
     # [END howto_operator_translate_access]

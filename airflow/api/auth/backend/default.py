@@ -28,7 +28,6 @@ def init_app(_):
 
 def requires_authentication(function):
     """Decorator for functions that require authentication"""
-
     @wraps(function)
     def decorated(*args, **kwargs):
         return function(*args, **kwargs)

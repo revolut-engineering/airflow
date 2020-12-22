@@ -30,9 +30,7 @@ import os
 from airflow.utils import dates
 from airflow import models
 from airflow.contrib.operators.gcp_text_to_speech_operator import GcpTextToSpeechSynthesizeOperator
-from airflow.contrib.operators.gcp_speech_to_text_operator import (
-    GcpSpeechToTextRecognizeSpeechOperator,
-)
+from airflow.contrib.operators.gcp_speech_to_text_operator import GcpSpeechToTextRecognizeSpeechOperator
 from airflow.contrib.operators.gcp_translate_speech_operator import GcpTranslateSpeechOperator
 
 # [START howto_operator_text_to_speech_env_variables]
@@ -56,18 +54,16 @@ AUDIO = {"uri": "gs://{bucket}/{object}".format(bucket=BUCKET_NAME, object=FILEN
 # [END howto_operator_speech_to_text_api_arguments]
 
 # [START howto_operator_translate_speech_arguments]
-TARGET_LANGUAGE = "pl"
-FORMAT = "text"
-MODEL = "base"
+TARGET_LANGUAGE = 'pl'
+FORMAT = 'text'
+MODEL = 'base'
 SOURCE_LANGUAGE = None
 # [END howto_operator_translate_speech_arguments]
 
 default_args = {"start_date": dates.days_ago(1)}
 
 with models.DAG(
-    "example_gcp_speech",
-    default_args=default_args,
-    schedule_interval=None,  # Override to match your needs
+    "example_gcp_speech", default_args=default_args, schedule_interval=None  # Override to match your needs
 ) as dag:
 
     # [START howto_operator_text_to_speech_synthesize]
@@ -84,10 +80,7 @@ with models.DAG(
 
     # [START howto_operator_speech_to_text_recognize]
     speech_to_text_recognize_task = GcpSpeechToTextRecognizeSpeechOperator(
-        project_id=GCP_PROJECT_ID,
-        config=CONFIG,
-        audio=AUDIO,
-        task_id="speech_to_text_recognize_task",
+        project_id=GCP_PROJECT_ID, config=CONFIG, audio=AUDIO, task_id="speech_to_text_recognize_task"
     )
     # [END howto_operator_speech_to_text_recognize]
 
@@ -102,7 +95,7 @@ with models.DAG(
         format_=FORMAT,
         source_language=SOURCE_LANGUAGE,
         model=MODEL,
-        task_id="translate_speech_task",
+        task_id='translate_speech_task'
     )
     # [END howto_operator_translate_speech]
 

@@ -33,30 +33,34 @@ from airflow.contrib.operators.azure_cosmos_operator import AzureCosmosInsertDoc
 from airflow.utils import dates
 
 default_args = {
-    "owner": "Airflow",
-    "depends_on_past": False,
-    "start_date": dates.days_ago(2),
-    "email": ["airflow@example.com"],
-    "email_on_failure": False,
-    "email_on_retry": False,
+    'owner': 'Airflow',
+    'depends_on_past': False,
+    'start_date': dates.days_ago(2),
+    'email': ['airflow@example.com'],
+    'email_on_failure': False,
+    'email_on_retry': False
 }
 
-with DAG(dag_id="example_azure_cosmosdb_sensor", default_args=default_args, doc_md=__doc__) as dag:
+with DAG(
+    dag_id='example_azure_cosmosdb_sensor',
+    default_args=default_args,
+    doc_md=__doc__
+) as dag:
 
     t1 = AzureCosmosDocumentSensor(
-        task_id="check_cosmos_file",
-        database_name="airflow_example_db",
-        collection_name="airflow_example_coll",
-        document_id="airflow_checkid",
-        azure_cosmos_conn_id="azure_cosmos_default",
+        task_id='check_cosmos_file',
+        database_name='airflow_example_db',
+        collection_name='airflow_example_coll',
+        document_id='airflow_checkid',
+        azure_cosmos_conn_id='azure_cosmos_default',
     )
 
     t2 = AzureCosmosInsertDocumentOperator(
-        task_id="insert_cosmos_file",
-        database_name="airflow_example_db",
-        collection_name="new-collection",
+        task_id='insert_cosmos_file',
+        database_name='airflow_example_db',
+        collection_name='new-collection',
         document={"id": "someuniqueid", "param1": "value1", "param2": "value2"},
-        azure_cosmos_conn_id="azure_cosmos_default",
+        azure_cosmos_conn_id='azure_cosmos_default',
     )
 
     t1 >> t2

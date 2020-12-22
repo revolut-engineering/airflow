@@ -54,27 +54,22 @@ def delete_dag(dag_id, keep_records_in_log=True, session=None):
     count = 0
 
     # noinspection PyUnresolvedReferences,PyProtectedMember
-    for (
-        model
-    ) in models.base.Base._decl_class_registry.values():  # pylint: disable=protected-access
+    for model in models.base.Base._decl_class_registry.values():  # pylint: disable=protected-access
         if hasattr(model, "dag_id"):
-            if keep_records_in_log and model.__name__ == "Log":
+            if keep_records_in_log and model.__name__ == 'Log':
                 continue
             cond = or_(model.dag_id == dag_id, model.dag_id.like(dag_id + ".%"))
-            count += session.query(model).filter(cond).delete(synchronize_session="fetch")
+            count += session.query(model).filter(cond).delete(synchronize_session='fetch')
     if dag.is_subdag:
         parent_dag_id, task_id = dag_id.rsplit(".", 1)
         for model in models.DagRun, TaskFail, models.TaskInstance:
-            count += (
-                session.query(model)
-                .filter(model.dag_id == parent_dag_id, model.task_id == task_id)
-                .delete()
-            )
+            count += session.query(model).filter(model.dag_id == parent_dag_id,
+                                                 model.task_id == task_id).delete()
 
     # Delete entries in Import Errors table for a deleted DAG
     # This handles the case when the dag_id is changed in the file
-    session.query(models.ImportError).filter(models.ImportError.filename == dag.fileloc).delete(
-        synchronize_session="fetch"
-    )
+    session.query(models.ImportError).filter(
+        models.ImportError.filename == dag.fileloc
+    ).delete(synchronize_session='fetch')
 
     return count
