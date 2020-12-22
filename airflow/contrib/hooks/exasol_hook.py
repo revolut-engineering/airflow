@@ -31,8 +31,8 @@ class ExasolHook(DbApiHook):
     Interact with Vertica.
     """
 
-    conn_name_attr = 'exasol_conn_id'
-    default_conn_name = 'exasol_default'
+    conn_name_attr = "exasol_conn_id"
+    default_conn_name = "exasol_default"
     supports_autocommit = True
 
     def get_conn(self):
@@ -42,9 +42,9 @@ class ExasolHook(DbApiHook):
         conn = self.get_connection(self.exasol_conn_id)
         conn_config = {
             "user": conn.login,
-            "password": conn.password or '',
+            "password": conn.password or "",
             "schema": conn.schema,
-            "dsn": (conn.host or 'localhost') + ':' + str(conn.port)
+            "dsn": (conn.host or "localhost") + ":" + str(conn.port),
         }
 
         conn = connect(**conn_config)

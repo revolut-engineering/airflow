@@ -27,15 +27,17 @@ from airflow.contrib.hooks.aws_hook import AwsHook
 
 def _get_message_attribute(o):
     if isinstance(o, bytes):
-        return {'DataType': 'Binary', 'BinaryValue': o}
+        return {"DataType": "Binary", "BinaryValue": o}
     if isinstance(o, str):
-        return {'DataType': 'String', 'StringValue': o}
+        return {"DataType": "String", "StringValue": o}
     if isinstance(o, (int, float)):
-        return {'DataType': 'Number', 'StringValue': str(o)}
-    if hasattr(o, '__iter__'):
-        return {'DataType': 'String.Array', 'StringValue': json.dumps(o)}
-    raise TypeError('Values in MessageAttributes must be one of bytes, str, int, float, or iterable; '
-                    'got {}'.format(type(o)))
+        return {"DataType": "Number", "StringValue": str(o)}
+    if hasattr(o, "__iter__"):
+        return {"DataType": "String.Array", "StringValue": json.dumps(o)}
+    raise TypeError(
+        "Values in MessageAttributes must be one of bytes, str, int, float, or iterable; "
+        "got {}".format(type(o))
+    )
 
 
 class AwsSnsHook(AwsHook):
@@ -51,7 +53,7 @@ class AwsSnsHook(AwsHook):
         """
         Get an SNS connection
         """
-        self.conn = self.get_client_type('sns')
+        self.conn = self.get_client_type("sns")
         return self.conn
 
     def publish_to_target(self, target_arn, message, subject=None, message_attributes=None):
@@ -77,18 +79,16 @@ class AwsSnsHook(AwsHook):
         conn = self.get_conn()
 
         publish_kwargs = {
-            'TargetArn': target_arn,
-            'MessageStructure': 'json',
-            'Message': json.dumps({
-                'default': message
-            }),
+            "TargetArn": target_arn,
+            "MessageStructure": "json",
+            "Message": json.dumps({"default": message}),
         }
 
         # Construct args this way because boto3 distinguishes from missing args and those set to None
         if subject:
-            publish_kwargs['Subject'] = subject
+            publish_kwargs["Subject"] = subject
         if message_attributes:
-            publish_kwargs['MessageAttributes'] = {
+            publish_kwargs["MessageAttributes"] = {
                 key: _get_message_attribute(val) for key, val in message_attributes.items()
             }
 

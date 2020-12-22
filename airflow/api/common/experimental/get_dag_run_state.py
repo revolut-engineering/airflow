@@ -35,4 +35,4 @@ def get_dag_run_state(dag_id, execution_date):  # type: (str, datetime) -> Dict[
 
     dagrun = check_and_get_dagrun(dag, execution_date)
 
-    return {'state': dagrun.get_state()}
+    return {"state": dagrun.get_state()}

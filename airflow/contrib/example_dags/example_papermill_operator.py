@@ -29,22 +29,19 @@ from airflow.operators.papermill_operator import PapermillOperator
 from airflow.utils.dates import days_ago
 
 
-default_args = {
-    'owner': 'Airflow',
-    'start_date': days_ago(2)
-}
+default_args = {"owner": "Airflow", "start_date": days_ago(2)}
 
 with DAG(
-    dag_id='example_papermill_operator',
+    dag_id="example_papermill_operator",
     default_args=default_args,
-    schedule_interval='0 0 * * *',
-    dagrun_timeout=timedelta(minutes=60)
+    schedule_interval="0 0 * * *",
+    dagrun_timeout=timedelta(minutes=60),
 ) as dag:
     # [START howto_operator_papermill]
     run_this = PapermillOperator(
         task_id="run_example_notebook",
         input_nb="/tmp/hello_world.ipynb",
         output_nb="/tmp/out-{{ execution_date }}.ipynb",
-        parameters={"msgs": "Ran from Airflow at {{ execution_date }}!"}
+        parameters={"msgs": "Ran from Airflow at {{ execution_date }}!"},
     )
     # [END howto_operator_papermill]

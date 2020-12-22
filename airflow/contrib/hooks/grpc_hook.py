@@ -69,30 +69,33 @@ class GrpcHook(BaseHook):
             channel = grpc.secure_channel(base_url, creds)
         elif auth_type == "JWT_GOOGLE":
             credentials, _ = google_auth.default()
-            jwt_creds = google_auth_jwt.OnDemandCredentials.from_signing_credentials(
-                credentials)
+            jwt_creds = google_auth_jwt.OnDemandCredentials.from_signing_credentials(credentials)
             channel = google_auth_transport_grpc.secure_authorized_channel(
-                jwt_creds, None, base_url)
+                jwt_creds, None, base_url
+            )
         elif auth_type == "OATH_GOOGLE":
             scopes = self._get_field("scopes").split(",")
             credentials, _ = google_auth.default(scopes=scopes)
             request = google_auth_transport_requests.Request()
             channel = google_auth_transport_grpc.secure_authorized_channel(
-                credentials, request, base_url)
+                credentials, request, base_url
+            )
         elif auth_type == "CUSTOM":
             if not self.custom_connection_func:
                 raise AirflowConfigException(
-                    "Customized connection function not set, not able to establish a channel")
+                    "Customized connection function not set, not able to establish a channel"
+                )
             channel = self.custom_connection_func(self.conn)
         else:
             raise AirflowConfigException(
                 "auth_type not supported or not provided, channel cannot be established,\
-                given value: %s" % str(auth_type))
+                given value: %s"
+                % str(auth_type)
+            )
 
         if self.interceptors:
             for interceptor in self.interceptors:
-                channel = grpc.intercept_channel(channel,
-                                                 interceptor)
+                channel = grpc.intercept_channel(channel, interceptor)
 
         return channel
 
@@ -113,11 +116,13 @@ class GrpcHook(BaseHook):
                 # noinspection PyUnresolvedReferences
                 self.log.exception(
                     "Error occurred when calling the grpc service: {0}, method: {1} \
-                    status code: {2}, error details: {3}"
-                    .format(stub.__class__.__name__,
-                            call_func,
-                            ex.code(),  # pylint: disable=no-member
-                            ex.details()))  # pylint: disable=no-member
+                    status code: {2}, error details: {3}".format(
+                        stub.__class__.__name__,
+                        call_func,
+                        ex.code(),  # pylint: disable=no-member
+                        ex.details(),
+                    )
+                )  # pylint: disable=no-member
                 raise ex
 
     def _get_field(self, field_name, default=None):
@@ -127,7 +132,7 @@ class GrpcHook(BaseHook):
         to the hook page, which allow admins to specify scopes, credential pem files, etc.
         They get formatted as shown below.
         """
-        full_field_name = 'extra__grpc__{}'.format(field_name)
+        full_field_name = "extra__grpc__{}".format(field_name)
         if full_field_name in self.extras:
             return self.extras[full_field_name]
         else:

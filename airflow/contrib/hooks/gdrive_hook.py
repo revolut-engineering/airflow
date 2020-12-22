@@ -41,9 +41,7 @@ class GoogleDriveHook(GoogleCloudBaseHook):
 
     _conn = None
 
-    def __init__(
-        self, api_version="v3", gcp_conn_id="google_cloud_default", delegate_to=None
-    ):
+    def __init__(self, api_version="v3", gcp_conn_id="google_cloud_default", delegate_to=None):
         super(GoogleDriveHook, self).__init__(gcp_conn_id, delegate_to)
         self.api_version = api_version
 
@@ -55,7 +53,9 @@ class GoogleDriveHook(GoogleCloudBaseHook):
         """
         if not self._conn:
             http_authorized = self._authorize()
-            self._conn = build("drive", self.api_version, http=http_authorized, cache_discovery=False)
+            self._conn = build(
+                "drive", self.api_version, http=http_authorized, cache_discovery=False
+            )
         return self._conn
 
     def _ensure_folders_exists(self, path):
@@ -65,7 +65,9 @@ class GoogleDriveHook(GoogleCloudBaseHook):
         depth = 0
         # First tries to enter directories
         for current_folder in folders:
-            self.log.debug("Looking for %s directory with %s parent", current_folder, current_parent)
+            self.log.debug(
+                "Looking for %s directory with %s parent", current_folder, current_parent
+            )
             conditions = [
                 "mimeType = 'application/vnd.google-apps.folder'",
                 "name='{}'".format(current_folder),

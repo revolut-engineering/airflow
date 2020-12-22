@@ -35,28 +35,28 @@ class MongoHook(BaseHook):
     ex.
         {"srv": true, "replicaSet": "test", "ssl": true, "connectTimeoutMS": 30000}
     """
-    conn_type = 'mongo'
 
-    def __init__(self, conn_id='mongo_default', *args, **kwargs):
-        super(MongoHook, self).__init__(source='mongo')
+    conn_type = "mongo"
+
+    def __init__(self, conn_id="mongo_default", *args, **kwargs):
+        super(MongoHook, self).__init__(source="mongo")
 
         self.mongo_conn_id = conn_id
         self.connection = self.get_connection(conn_id)
         self.extras = self.connection.extra_dejson.copy()
         self.client = None
 
-        srv = self.extras.pop('srv', False)
-        scheme = 'mongodb+srv' if srv else 'mongodb'
+        srv = self.extras.pop("srv", False)
+        scheme = "mongodb+srv" if srv else "mongodb"
 
-        self.uri = '{scheme}://{creds}{host}{port}/{database}'.format(
+        self.uri = "{scheme}://{creds}{host}{port}/{database}".format(
             scheme=scheme,
-            creds='{}:{}@'.format(
-                self.connection.login, self.connection.password
-            ) if self.connection.login else '',
-
+            creds="{}:{}@".format(self.connection.login, self.connection.password)
+            if self.connection.login
+            else "",
             host=self.connection.host,
-            port='' if self.connection.port is None else ':{}'.format(self.connection.port),
-            database=self.connection.schema
+            port="" if self.connection.port is None else ":{}".format(self.connection.port),
+            database=self.connection.schema,
         )
 
     def __enter__(self):
@@ -77,8 +77,8 @@ class MongoHook(BaseHook):
         options = self.extras
 
         # If we are using SSL disable requiring certs from specific hostname
-        if options.get('ssl', False):
-            options.update({'ssl_cert_reqs': CERT_NONE})
+        if options.get("ssl", False):
+            options.update({"ssl_cert_reqs": CERT_NONE})
 
         self.client = MongoClient(self.uri, **options)
 
@@ -141,8 +141,7 @@ class MongoHook(BaseHook):
 
         return collection.insert_many(docs, **kwargs)
 
-    def update_one(self, mongo_collection, filter_doc, update_doc,
-                   mongo_db=None, **kwargs):
+    def update_one(self, mongo_collection, filter_doc, update_doc, mongo_db=None, **kwargs):
         """
         Updates a single document in a mongo collection.
         https://api.mongodb.com/python/current/api/pymongo/collection.html#pymongo.collection.Collection.update_one
@@ -162,8 +161,7 @@ class MongoHook(BaseHook):
 
         return collection.update_one(filter_doc, update_doc, **kwargs)
 
-    def update_many(self, mongo_collection, filter_doc, update_doc,
-                    mongo_db=None, **kwargs):
+    def update_many(self, mongo_collection, filter_doc, update_doc, mongo_db=None, **kwargs):
         """
         Updates one or more documents in a mongo collection.
         https://api.mongodb.com/python/current/api/pymongo/collection.html#pymongo.collection.Collection.update_many
@@ -183,8 +181,7 @@ class MongoHook(BaseHook):
 
         return collection.update_many(filter_doc, update_doc, **kwargs)
 
-    def replace_one(self, mongo_collection, doc, filter_doc=None,
-                    mongo_db=None, **kwargs):
+    def replace_one(self, mongo_collection, doc, filter_doc=None, mongo_db=None, **kwargs):
         """
         Replaces a single document in a mongo collection.
         https://api.mongodb.com/python/current/api/pymongo/collection.html#pymongo.collection.Collection.replace_one
@@ -207,13 +204,20 @@ class MongoHook(BaseHook):
         collection = self.get_collection(mongo_collection, mongo_db=mongo_db)
 
         if not filter_doc:
-            filter_doc = {'_id': doc['_id']}
+            filter_doc = {"_id": doc["_id"]}
 
         return collection.replace_one(filter_doc, doc, **kwargs)
 
-    def replace_many(self, mongo_collection, docs,
-                     filter_docs=None, mongo_db=None, upsert=False, collation=None,
-                     **kwargs):
+    def replace_many(
+        self,
+        mongo_collection,
+        docs,
+        filter_docs=None,
+        mongo_db=None,
+        upsert=False,
+        collation=None,
+        **kwargs
+    ):
         """
         Replaces many documents in a mongo collection.
 
@@ -247,14 +251,10 @@ class MongoHook(BaseHook):
         collection = self.get_collection(mongo_collection, mongo_db=mongo_db)
 
         if not filter_docs:
-            filter_docs = [{'_id': doc['_id']} for doc in docs]
+            filter_docs = [{"_id": doc["_id"]} for doc in docs]
 
         requests = [
-            ReplaceOne(
-                filter_docs[i],
-                docs[i],
-                upsert=upsert,
-                collation=collation)
+            ReplaceOne(filter_docs[i], docs[i], upsert=upsert, collation=collation)
             for i in range(len(docs))
         ]
 

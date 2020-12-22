@@ -43,37 +43,33 @@ class AzureContainerInstanceHook(BaseHook):
     :type conn_id: str
     """
 
-    def __init__(self, conn_id='azure_default'):
+    def __init__(self, conn_id="azure_default"):
         self.conn_id = conn_id
         self.connection = self.get_conn()
 
     def get_conn(self):
         conn = self.get_connection(self.conn_id)
-        key_path = conn.extra_dejson.get('key_path', False)
+        key_path = conn.extra_dejson.get("key_path", False)
         if key_path:
-            if key_path.endswith('.json'):
-                self.log.info('Getting connection using a JSON key file.')
-                return get_client_from_auth_file(ContainerInstanceManagementClient,
-                                                 key_path)
+            if key_path.endswith(".json"):
+                self.log.info("Getting connection using a JSON key file.")
+                return get_client_from_auth_file(ContainerInstanceManagementClient, key_path)
             else:
-                raise AirflowException('Unrecognised extension for key file.')
+                raise AirflowException("Unrecognised extension for key file.")
 
-        if os.environ.get('AZURE_AUTH_LOCATION'):
-            key_path = os.environ.get('AZURE_AUTH_LOCATION')
-            if key_path.endswith('.json'):
-                self.log.info('Getting connection using a JSON key file.')
-                return get_client_from_auth_file(ContainerInstanceManagementClient,
-                                                 key_path)
+        if os.environ.get("AZURE_AUTH_LOCATION"):
+            key_path = os.environ.get("AZURE_AUTH_LOCATION")
+            if key_path.endswith(".json"):
+                self.log.info("Getting connection using a JSON key file.")
+                return get_client_from_auth_file(ContainerInstanceManagementClient, key_path)
             else:
-                raise AirflowException('Unrecognised extension for key file.')
+                raise AirflowException("Unrecognised extension for key file.")
 
         credentials = ServicePrincipalCredentials(
-            client_id=conn.login,
-            secret=conn.password,
-            tenant=conn.extra_dejson['tenantId']
+            client_id=conn.login, secret=conn.password, tenant=conn.extra_dejson["tenantId"]
         )
 
-        subscription_id = conn.extra_dejson['subscriptionId']
+        subscription_id = conn.extra_dejson["subscriptionId"]
         return ContainerInstanceManagementClient(credentials, str(subscription_id))
 
     def create_or_update(self, resource_group, name, container_group):
@@ -87,11 +83,11 @@ class AzureContainerInstanceHook(BaseHook):
         :param container_group: the properties of the container group
         :type container_group: azure.mgmt.containerinstance.models.ContainerGroup
         """
-        self.connection.container_groups.create_or_update(resource_group,
-                                                          name,
-                                                          container_group)
+        self.connection.container_groups.create_or_update(resource_group, name, container_group)
 
-    @deprecation.deprecate("get_state_exitcode_details() is deprecated. Related method is get_state()")
+    @deprecation.deprecate(
+        "get_state_exitcode_details() is deprecated. Related method is get_state()"
+    )
     def get_state_exitcode_details(self, resource_group, name):
         """
         Get the state and exitcode of a container group
@@ -135,9 +131,7 @@ class AzureContainerInstanceHook(BaseHook):
         :return: ContainerGroup
         :rtype: ~azure.mgmt.containerinstance.models.ContainerGroup
         """
-        return self.connection.container_groups.get(resource_group,
-                                                    name,
-                                                    raw=False)
+        return self.connection.container_groups.get(resource_group, name, raw=False)
 
     def get_logs(self, resource_group, name, tail=1000):
         """

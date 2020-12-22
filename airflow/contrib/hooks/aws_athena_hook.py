@@ -34,11 +34,17 @@ class AWSAthenaHook(AwsHook):
     :type sleep_time: int
     """
 
-    INTERMEDIATE_STATES = ('QUEUED', 'RUNNING',)
-    FAILURE_STATES = ('FAILED', 'CANCELLED',)
-    SUCCESS_STATES = ('SUCCEEDED',)
+    INTERMEDIATE_STATES = (
+        "QUEUED",
+        "RUNNING",
+    )
+    FAILURE_STATES = (
+        "FAILED",
+        "CANCELLED",
+    )
+    SUCCESS_STATES = ("SUCCEEDED",)
 
-    def __init__(self, aws_conn_id='aws_default', sleep_time=30, *args, **kwargs):
+    def __init__(self, aws_conn_id="aws_default", sleep_time=30, *args, **kwargs):
         super(AWSAthenaHook, self).__init__(aws_conn_id, *args, **kwargs)
         self.sleep_time = sleep_time
         self.conn = None
@@ -50,11 +56,17 @@ class AWSAthenaHook(AwsHook):
         :return: boto3 session
         """
         if not self.conn:
-            self.conn = self.get_client_type('athena')
+            self.conn = self.get_client_type("athena")
         return self.conn
 
-    def run_query(self, query, query_context, result_configuration, client_request_token=None,
-                  workgroup='primary'):
+    def run_query(
+        self,
+        query,
+        query_context,
+        result_configuration,
+        client_request_token=None,
+        workgroup="primary",
+    ):
         """
         Run Presto query on athena with provided config and return submitted query_execution_id
 
@@ -70,12 +82,14 @@ class AWSAthenaHook(AwsHook):
         :type workgroup: str
         :return: str
         """
-        response = self.get_conn().start_query_execution(QueryString=query,
-                                                         ClientRequestToken=client_request_token,
-                                                         QueryExecutionContext=query_context,
-                                                         ResultConfiguration=result_configuration,
-                                                         WorkGroup=workgroup)
-        query_execution_id = response['QueryExecutionId']
+        response = self.get_conn().start_query_execution(
+            QueryString=query,
+            ClientRequestToken=client_request_token,
+            QueryExecutionContext=query_context,
+            ResultConfiguration=result_configuration,
+            WorkGroup=workgroup,
+        )
+        query_execution_id = response["QueryExecutionId"]
         return query_execution_id
 
     def check_query_status(self, query_execution_id):
@@ -89,9 +103,9 @@ class AWSAthenaHook(AwsHook):
         response = self.get_conn().get_query_execution(QueryExecutionId=query_execution_id)
         state = None
         try:
-            state = response['QueryExecution']['Status']['State']
+            state = response["QueryExecution"]["Status"]["State"]
         except Exception as ex:  # pylint: disable=broad-except
-            self.log.error('Exception while getting query state', ex)
+            self.log.error("Exception while getting query state", ex)
         finally:
             # The error is being absorbed here and is being handled by the caller.
             # The error is being absorbed to implement retries.
@@ -108,9 +122,9 @@ class AWSAthenaHook(AwsHook):
         response = self.get_conn().get_query_execution(QueryExecutionId=query_execution_id)
         reason = None
         try:
-            reason = response['QueryExecution']['Status']['StateChangeReason']
+            reason = response["QueryExecution"]["Status"]["StateChangeReason"]
         except Exception as ex:  # pylint: disable=broad-except
-            self.log.error('Exception while getting query state change reason', ex)
+            self.log.error("Exception while getting query state change reason", ex)
         finally:
             # The error is being absorbed here and is being handled by the caller.
             # The error is being absorbed to implement retries.
@@ -127,10 +141,12 @@ class AWSAthenaHook(AwsHook):
         """
         query_state = self.check_query_status(query_execution_id)
         if query_state is None:
-            self.log.error('Invalid Query state')
+            self.log.error("Invalid Query state")
             return None
         elif query_state in self.INTERMEDIATE_STATES or query_state in self.FAILURE_STATES:
-            self.log.error('Query is in {state} state. Cannot fetch results'.format(state=query_state))
+            self.log.error(
+                "Query is in {state} state. Cannot fetch results".format(state=query_state)
+            )
             return None
         return self.get_conn().get_query_results(QueryExecutionId=query_execution_id)
 
@@ -150,14 +166,23 @@ class AWSAthenaHook(AwsHook):
         while True:
             query_state = self.check_query_status(query_execution_id)
             if query_state is None:
-                self.log.info('Trial {try_number}: Invalid query state. Retrying again'.format(
-                    try_number=try_number))
+                self.log.info(
+                    "Trial {try_number}: Invalid query state. Retrying again".format(
+                        try_number=try_number
+                    )
+                )
             elif query_state in self.INTERMEDIATE_STATES:
-                self.log.info('Trial {try_number}: Query is still in an intermediate state - {state}'
-                              .format(try_number=try_number, state=query_state))
+                self.log.info(
+                    "Trial {try_number}: Query is still in an intermediate state - {state}".format(
+                        try_number=try_number, state=query_state
+                    )
+                )
             else:
-                self.log.info('Trial {try_number}: Query execution completed. Final state is {state}'
-                              .format(try_number=try_number, state=query_state))
+                self.log.info(
+                    "Trial {try_number}: Query execution completed. Final state is {state}".format(
+                        try_number=try_number, state=query_state
+                    )
+                )
                 final_query_state = query_state
                 break
             if max_tries and try_number >= max_tries:  # Break loop if max_tries reached

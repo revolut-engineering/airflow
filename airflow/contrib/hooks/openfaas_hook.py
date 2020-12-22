@@ -40,10 +40,7 @@ class OpenFaasHook(BaseHook):
     DEPLOY_FUNCTION = "/system/functions"
     UPDATE_FUNCTION = "/system/functions"
 
-    def __init__(self,
-                 function_name=None,
-                 conn_id='open_faas_default',
-                 *args, **kwargs):
+    def __init__(self, function_name=None, conn_id="open_faas_default", *args, **kwargs):
         self.function_name = function_name
         self.conn_id = conn_id
         super(BaseHook, self).__init__(*args, **kwargs)
@@ -63,7 +60,7 @@ class OpenFaasHook(BaseHook):
             if response.status_code != OK_STATUS_CODE:
                 self.log.error("Response status " + str(response.status_code))
                 self.log.error("Failed to deploy")
-                raise AirflowException('failed to deploy')
+                raise AirflowException("failed to deploy")
             else:
                 self.log.info("Function deployed " + self.function_name)
 
@@ -75,7 +72,7 @@ class OpenFaasHook(BaseHook):
             self.log.info("Invoked " + self.function_name)
         else:
             self.log.error("Response status " + str(response.status_code))
-            raise AirflowException('failed to invoke function')
+            raise AirflowException("failed to invoke function")
 
     def update_function(self, body):
         url = self.get_conn().host + self.UPDATE_FUNCTION
@@ -84,7 +81,7 @@ class OpenFaasHook(BaseHook):
         if response.status_code != OK_STATUS_CODE:
             self.log.error("Response status " + str(response.status_code))
             self.log.error("Failed to update response " + response.content.decode("utf-8"))
-            raise AirflowException('failed to update ' + self.function_name)
+            raise AirflowException("failed to update " + self.function_name)
         else:
             self.log.info("Function was updated")
 

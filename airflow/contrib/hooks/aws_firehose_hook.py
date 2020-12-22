@@ -43,7 +43,7 @@ class AwsFirehoseHook(AwsHook):
         Returns AwsHook connection object.
         """
 
-        self.conn = self.get_client_type('firehose', self.region_name)
+        self.conn = self.get_client_type("firehose", self.region_name)
         return self.conn
 
     def put_records(self, records):
@@ -54,8 +54,7 @@ class AwsFirehoseHook(AwsHook):
         firehose_conn = self.get_conn()
 
         response = firehose_conn.put_record_batch(
-            DeliveryStreamName=self.delivery_stream,
-            Records=records
+            DeliveryStreamName=self.delivery_stream, Records=records
         )
 
         return response

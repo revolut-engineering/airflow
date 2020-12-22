@@ -32,11 +32,7 @@ from airflow.exceptions import AirflowException
 
 class SegmentHook(BaseHook):
     def __init__(
-            self,
-            segment_conn_id='segment_default',
-            segment_debug_mode=False,
-            *args,
-            **kwargs
+        self, segment_conn_id="segment_default", segment_debug_mode=False, *args, **kwargs
     ):
         """
         Create new connection to Segment
@@ -67,15 +63,15 @@ class SegmentHook(BaseHook):
         # get the connection parameters
         self.connection = self.get_connection(self.segment_conn_id)
         self.extras = self.connection.extra_dejson
-        self.write_key = self.extras.get('write_key')
+        self.write_key = self.extras.get("write_key")
         if self.write_key is None:
-            raise AirflowException('No Segment write key provided')
+            raise AirflowException("No Segment write key provided")
 
     def get_conn(self):
-        self.log.info('Setting write key for Segment analytics connection')
+        self.log.info("Setting write key for Segment analytics connection")
         analytics.debug = self.segment_debug_mode
         if self.segment_debug_mode:
-            self.log.info('Setting Segment analytics connection to debug mode')
+            self.log.info("Setting Segment analytics connection to debug mode")
         analytics.on_error = self.on_error
         analytics.write_key = self.write_key
         return analytics
@@ -84,7 +80,8 @@ class SegmentHook(BaseHook):
         """
         Handles error callbacks when using Segment with segment_debug_mode set to True
         """
-        self.log.error('Encountered Segment error: {segment_error} with '
-                       'items: {with_items}'.format(segment_error=error,
-                                                    with_items=items))
-        raise AirflowException('Segment error: {}'.format(error))
+        self.log.error(
+            "Encountered Segment error: {segment_error} with "
+            "items: {with_items}".format(segment_error=error, with_items=items)
+        )
+        raise AirflowException("Segment error: {}".format(error))

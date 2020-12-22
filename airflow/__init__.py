@@ -55,30 +55,32 @@ log = logging.getLogger(__name__)
 
 def load_login():
 
-    auth_backend = 'airflow.default_login'
+    auth_backend = "airflow.default_login"
     try:
-        if conf.getboolean('webserver', 'AUTHENTICATE'):
-            auth_backend = conf.get('webserver', 'auth_backend')
+        if conf.getboolean("webserver", "AUTHENTICATE"):
+            auth_backend = conf.get("webserver", "auth_backend")
     except conf.AirflowConfigException:
-        if conf.getboolean('webserver', 'AUTHENTICATE'):
+        if conf.getboolean("webserver", "AUTHENTICATE"):
             log.warning(
                 "auth_backend not found in webserver config reverting to "
-                "*deprecated*  behavior of importing airflow_login")
+                "*deprecated*  behavior of importing airflow_login"
+            )
             auth_backend = "airflow_login"
 
     try:
         global login
         login = import_module(auth_backend)
 
-        if hasattr(login, 'login_manager') and not hasattr(login, 'LOGIN_MANAGER'):
+        if hasattr(login, "login_manager") and not hasattr(login, "LOGIN_MANAGER"):
             login.LOGIN_MANAGER = login.login_manager
     except ImportError as err:
         log.critical(
             "Cannot import authentication module %s. "
             "Please correct your authentication backend or disable authentication: %s",
-            auth_backend, err
+            auth_backend,
+            err,
         )
-        if conf.getboolean('webserver', 'AUTHENTICATE'):
+        if conf.getboolean("webserver", "AUTHENTICATE"):
             raise AirflowException("Failed to import authentication backend")
 
 

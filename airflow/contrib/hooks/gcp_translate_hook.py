@@ -28,7 +28,7 @@ class CloudTranslateHook(GoogleCloudBaseHook):
 
     _client = None
 
-    def __init__(self, gcp_conn_id='google_cloud_default'):
+    def __init__(self, gcp_conn_id="google_cloud_default"):
         super(CloudTranslateHook, self).__init__(gcp_conn_id)
 
     def get_conn(self):
@@ -43,9 +43,7 @@ class CloudTranslateHook(GoogleCloudBaseHook):
         return self._client
 
     @GoogleCloudBaseHook.quota_retry()
-    def translate(
-        self, values, target_language, format_=None, source_language=None, model=None
-    ):
+    def translate(self, values, target_language, format_=None, source_language=None, model=None):
         """Translate a string or list of strings.
 
         See https://cloud.google.com/translate/docs/translating-text

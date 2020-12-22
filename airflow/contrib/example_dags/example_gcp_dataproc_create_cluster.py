@@ -26,13 +26,13 @@ import airflow
 from airflow import models
 from airflow.contrib.operators.dataproc_operator import (
     DataprocClusterCreateOperator,
-    DataprocClusterDeleteOperator
+    DataprocClusterDeleteOperator,
 )
 
-PROJECT_ID = os.environ.get('GCP_PROJECT_ID', 'an-id')
-CLUSTER_NAME = os.environ.get('GCP_DATAPROC_CLUSTER_NAME', 'example-project')
-REGION = os.environ.get('GCP_LOCATION', 'europe-west1')
-ZONE = os.environ.get('GCP_REGION', 'europe-west-1b')
+PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "an-id")
+CLUSTER_NAME = os.environ.get("GCP_DATAPROC_CLUSTER_NAME", "example-project")
+REGION = os.environ.get("GCP_LOCATION", "europe-west1")
+ZONE = os.environ.get("GCP_REGION", "europe-west-1b")
 
 with models.DAG(
     "example_gcp_dataproc_create_cluster",
@@ -48,10 +48,7 @@ with models.DAG(
     )
 
     delete_cluster = DataprocClusterDeleteOperator(
-        task_id="delete_cluster",
-        project_id=PROJECT_ID,
-        cluster_name=CLUSTER_NAME,
-        region=REGION
+        task_id="delete_cluster", project_id=PROJECT_ID, cluster_name=CLUSTER_NAME, region=REGION
     )
 
     create_cluster >> delete_cluster  # pylint: disable=pointless-statement

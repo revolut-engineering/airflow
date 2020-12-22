@@ -43,9 +43,11 @@ class AwsLogsHook(AwsHook):
 
         :rtype: CloudWatchLogs.Client
         """
-        return self.get_client_type('logs', region_name=self.region_name)
+        return self.get_client_type("logs", region_name=self.region_name)
 
-    def get_log_events(self, log_group, log_stream_name, start_time=0, skip=0, start_from_head=True):
+    def get_log_events(
+        self, log_group, log_stream_name, start_time=0, skip=0, start_from_head=True
+    ):
         """
         A generator for log items in a single stream. This will yield all the
         items that are available at the current moment.
@@ -74,17 +76,19 @@ class AwsLogsHook(AwsHook):
         event_count = 1
         while event_count > 0:
             if next_token is not None:
-                token_arg = {'nextToken': next_token}
+                token_arg = {"nextToken": next_token}
             else:
                 token_arg = {}
 
-            response = self.get_conn().get_log_events(logGroupName=log_group,
-                                                      logStreamName=log_stream_name,
-                                                      startTime=start_time,
-                                                      startFromHead=start_from_head,
-                                                      **token_arg)
+            response = self.get_conn().get_log_events(
+                logGroupName=log_group,
+                logStreamName=log_stream_name,
+                startTime=start_time,
+                startFromHead=start_from_head,
+                **token_arg
+            )
 
-            events = response['events']
+            events = response["events"]
             event_count = len(events)
 
             if event_count > skip:
@@ -97,7 +101,7 @@ class AwsLogsHook(AwsHook):
             for ev in events:
                 yield ev
 
-            if 'nextForwardToken' in response:
-                next_token = response['nextForwardToken']
+            if "nextForwardToken" in response:
+                next_token = response["nextForwardToken"]
             else:
                 return
