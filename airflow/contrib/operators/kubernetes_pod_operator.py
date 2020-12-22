@@ -17,6 +17,7 @@
 """Executes task in a Kubernetes POD"""
 import os
 import re
+from typing import Iterable
 
 from airflow.exceptions import AirflowException
 from airflow.kubernetes import kube_client, pod_generator, pod_launcher
@@ -201,7 +202,7 @@ class KubernetesPodOperator(BaseOperator):  # pylint: disable=too-many-instance-
         self.ports = ports or []
         self.volume_mounts = volume_mounts or []
         self.volumes = volumes or []
-        self.secrets = list(secrets) or []
+        self.secrets = list(secrets) if isinstance(secrets, Iterable) else []
         self.in_cluster = in_cluster
         self.cluster_context = cluster_context
         self.reattach_on_restart = reattach_on_restart
