@@ -109,7 +109,7 @@ class FileTaskHandler(logging.Handler):
                 log = "*** Failed to load local log file: {}\n".format(location)
                 log += "*** {}\n".format(str(e))
         elif conf.get('core', 'executor') == 'KubernetesExecutor':
-            log += '*** Trying to get logs (last 100 lines) from worker pod {} ***\n\n'\
+            log += '*** Trying to get logs from worker pod {} ***\n\n'\
                 .format(ti.hostname)
 
             try:
@@ -121,7 +121,7 @@ class FileTaskHandler(logging.Handler):
                     namespace=conf.get('kubernetes', 'namespace'),
                     container='base',
                     follow=False,
-                    tail_lines=100,
+                    tail_lines=conf.getint('kubernetes', 'logs_tail_lines'),
                     _preload_content=False
                 )
 
