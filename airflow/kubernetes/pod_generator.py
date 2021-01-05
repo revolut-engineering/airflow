@@ -43,7 +43,7 @@ from airflow.version import version as airflow_version
 
 MAX_LABEL_LEN = 63
 
-MAX_POD_ID_LEN = 64
+MAX_POD_ID_LEN = 63
 
 
 class PodDefaults(object):
