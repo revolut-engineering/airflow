@@ -30,6 +30,7 @@ from requests.exceptions import BaseHTTPError
 
 from airflow import AirflowException
 from airflow import settings
+from airflow.configuration import conf
 from airflow.contrib.kubernetes.pod import (
     Pod, _extract_env_vars_and_secrets, _extract_volumes, _extract_volume_mounts,
     _extract_ports, _extract_security_context
@@ -198,7 +199,7 @@ class PodLauncher(LoggingMixin):
         wait=tenacity.wait_exponential(),
         reraise=True
     )
-    def read_pod_logs(self, pod, tail_lines=10):
+    def read_pod_logs(self, pod):
         """Reads log from the POD"""
         try:
             return self._client.read_namespaced_pod_log(
@@ -206,7 +207,7 @@ class PodLauncher(LoggingMixin):
                 namespace=pod.metadata.namespace,
                 container='base',
                 follow=True,
-                tail_lines=tail_lines,
+                tail_lines=conf.getint('kubernetes', 'logs_tail_lines'),
                 _preload_content=False
             )
         except BaseHTTPError as e:

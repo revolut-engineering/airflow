@@ -86,7 +86,7 @@ class TestPodLauncher(unittest.TestCase):
         self.mock_kube_client.read_namespaced_pod_log.side_effect = [
             mock.sentinel.logs
         ]
-        logs = self.pod_launcher.read_pod_logs(mock.sentinel, 100)
+        logs = self.pod_launcher.read_pod_logs(mock.sentinel)
         self.assertEqual(mock.sentinel.logs, logs)
         self.mock_kube_client.read_namespaced_pod_log.assert_has_calls([
             mock.call(
@@ -95,7 +95,7 @@ class TestPodLauncher(unittest.TestCase):
                 follow=True,
                 name=mock.sentinel.metadata.name,
                 namespace=mock.sentinel.metadata.namespace,
-                tail_lines=100
+                tail_lines=10
             ),
         ])
 
